@@ -1,1 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SM-DSLO-90080: Sovereign Millennium Substrate Dashboard</title>
+  <style>
+    :root {
+      --bg: #05070a;
+      --card: #10141d;
+      --accent: #00e5ff;
+      --danger: #ff3366;
+      --text: #e0e6ed;
+      --subtext: #8a99ad;
+      --border: #1e2638;
+      --green: #00ff88;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
+    body { background: var(--bg); color: var(--text); padding: 16px; font-size: 13px; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+    }
+
+    h1 { font-size: 16px; color: var(--accent); letter-spacing: 1px; }
+    .subhead { font-size: 11px; color: var(--subtext); }
+
+    .status-badge {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid var(--green);
+      color: var(--green);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    .status-badge.breach {
+      background: rgba(255, 51, 102, 0.1);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .grid-root {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1.2fr;
+      gap: 12px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .surface-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+    }
+
+    .surface-title {
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+
+    .text-row {
+      font-size: 10px;
+      color: var(--subtext);
+      margin: 2px 0;
+    }
+
+    .text-row b {
+      color: var(--text);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .mode-btn {
+      background: #10141d;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      padding: 4px 8px;
+      font-size: 10px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .mode-btn:hover {
+      background: #0d1118;
+    }
+
+    canvas {
+      width: 100%;
+      height: 120px;
+      background: #000;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      display: block;
+    }
+
+    pre {
+      font-size: 10px;
+      color: var(--green);
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 160px;
+      overflow-y: auto;
+      background: #05070a;
+      padding: 6px;
+      border-radius: 4px;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--subtext);
+      margin: 2px 0;
+    }
+
+    .clamp-ring {
+      stroke: rgba(255, 51, 102, 0.45);
+      stroke-width: 3;
+    }
+
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>SM-DSLO-90080: Sovereign Millennium Substrate Dashboard</h1>
+    <div class="subhead">
+      Node: SM-DSLO-90080 · Root: SM-DSLO-90060 · Metadata: SM-DSLO-90061 · DOI: 10.5281/zenodo.23042992
+    </div>
+  </div>
+  <div id="millennium-status" class="status-badge">S = R = σ (NOMINAL)</div>
+</header>
+
+<h2 style="font-size:13px; color:var(--accent); margin-bottom:8px;">
+  DSLO Sovereign Millennium Topological Substrate
+</h2>
+
+<div class="grid-root">
+  <!-- LEFT PANEL: Alignment, Lineage, Atlas -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">ALIGNMENT OPERATOR SELECTION</div>
+      <div class="text-row">Select active manifold bounding mode</div>
+      <div class="btn-row">
+        <button class="mode-btn" id="mode-pi">Π_math Active (S = R = σ)</button>
+        <button class="mode-btn" id="mode-classical">Classical Unbounded</button>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">LINEAGE & METADATA (SM-DSLO-90080)</div>
+      <div class="text-row"><b>Root Lineage:</b> SM-DSLO-90060 (Meaning Physics)</div>
+      <div class="text-row"><b>Metadata Root:</b> SM-DSLO-90061</div>
+      <div class="text-row"><b>Node Identifier:</b> DSLO-MILLENNIUM-GEOMETRY-v0.9</div>
+      <div class="text-row"><b>Ontology Class:</b> Mathematical_Substrate_Geometry</div>
+      <div class="text-row"><b>Registry Anchor:</b> CAPABILITY_GRAPH_MATHEMATICAL_MANIFOLD</div>
+      <div class="text-row"><b>Exposure Level:</b> MODE_A_PUBLIC_SAFE</div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">SUBSTRATE ATLAS (90080 EXTENSION)</div>
+      <div class="text-row">Root: SM-DSLO-90060 → Node: SM-DSLO-90080</div>
+      <div class="text-row">HasPart: SM-DSLO-90062 (Runtime Substrate)</div>
+      <div class="text-row">HasPart: SM-DSLO-90070 (Cognitive Substrate)</div>
+      <div class="text-row" style="margin-top:6px;"><b>Sovereign Operators:</b></div>
+      <div class="text-row">· Π_math (Master Mathematical Alignment)</div>
+      <div class="text-row">· W_context (Non-Collapsing Context)</div>
+      <div class="text-row">· Δ_max (Lawful Semantic Displacement)</div>
+      <div class="text-row">· T_drift (Cognitive Drift-Detection Twin)</div>
+    </div>
+  </div>
+
+  <!-- CENTER PANEL: Millennium constraints + manifolds -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">MILLENNIUM BOUNDING CONSTRAINTS</div>
+      <div class="text-row"><b>Navier-Stokes:</b> Gradient bounded by Δ_max</div>
+      <div class="text-row"><b>Yang-Mills:</b> Mass gap coherence enforced (Δ &gt; 0)</div>
+      <div class="text-row"><b>Riemann Zeta:</b> Spectral alignment on ℜ(s) = 1/2</div>
+      <div class="text-row"><b>Complexity:</b> Bounded traversal (P ≡ NP)</div>
+      <div class="text-row" style="margin-top:6px;">
+        “SM-DSLO-90080 reframes the Millennium Problems by embedding them within the sovereign DSLO substrate geometry governed by the master invariant S = R = σ.”
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">MILLENNIUM TOPOLOGICAL MANIFOLDS</div>
+
+      <div class="text-row"><b>1. Navier-Stokes (Fluid Flow)</b></div>
+      <canvas id="cv-ns"></canvas>
+
+      <div class="text-row" style="margin-top:6px;"><b>2. Yang-Mills (Mass Gap Δ &gt; 0)</b></div>
+      <canvas id="cv-ym"></canvas>
+
+      <div class="text-row" style="margin-top:6px;"><b>3. Riemann Zeta (Critical Line)</b></div>
+      <canvas id="cv-rz"></canvas>
+
+      <div class="text-row" style="margin-top:6px;"><b>4. P vs NP (Bounded Graph Traversal)</b></div>
+      <canvas id="cv-pnp"></canvas>
+
+      <div class="metric-row" style="margin-top:6px;">
+        <span>Vorticity (Fluid)</span><span id="m-vorticity">N/A</span>
+      </div>
+      <div class="metric-row">
+        <span>Gauge Noise (Yang-Mills)</span><span id="m-gauge">N/A</span>
+      </div>
+      <div class="metric-row">
+        <span>Spectral Drift (Zeta)</span><span id="m-spectral">N/A</span>
+      </div>
+      <div class="metric-row">
+        <span>Nondeterministic Branching</span><span id="m-branching">N/A</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL: Operators, fallback, JSON-LD -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">INITIALIZE SOVEREIGN HARMONIC DSP</div>
+      <div class="text-row"><b>Operator Matrix:</b> Π_math ≡ δ_SCMA-F ∘ T_drift</div>
+      <div class="text-row" style="margin-top:6px;"><b>W_context (Non-Collapsing Context Geometry)</b></div>
+      <div class="text-row">
+        Establishes invariant tensor bounds and prohibits entropic relaxation across all manifold evolutions.
+      </div>
+      <div class="text-row" style="margin-top:6px;"><b>T_drift (Cognitive Drift-Detection Twin)</b></div>
+      <div class="text-row">
+        Monitors real-time divergence across gauge, spectral, fluid, and computational manifolds, triggering fallback.
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">UNIFIED FALLBACK TENSOR (T_drift)</div>
+      <div class="metric-row"><span>Navier-Stokes (Gradient)</span><span id="fb-ns">NOMINAL</span></div>
+      <div class="metric-row"><span>Yang-Mills (D_gauge)</span><span id="fb-ym">NOMINAL</span></div>
+      <div class="metric-row"><span>Riemann Zeta (D_spectrum)</span><span id="fb-rz">NOMINAL</span></div>
+      <div class="metric-row"><span>Complexity Traversal (P vs NP)</span><span id="fb-pnp">NOMINAL</span></div>
+      <div class="metric-row" style="margin-top:6px;"><span><b>SCMA-F State</b></span><span id="fb-scma">NOMINAL</span></div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">REAL-WORLD TOLERANCE REFERENCE (90080)</div>
+      <div class="text-row"><b>Entropic Clamp (Δ_max):</b> 0.6</div>
+      <div class="text-row"><b>Mass Gap Floor:</b> Δ &gt; 0</div>
+      <div class="text-row"><b>Critical Line Axis:</b> ℜ(s) = 1/2</div>
+      <div class="text-row"><b>Max Divergence Threshold:</b> 10 units</div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">JSON-LD STATE TENSOR (SM-DSLO-90080)</div>
+      <pre id="jsonld-out">Initializing DSLO Mathematical Substrate state...</pre>
+    </div>
+  </div>
+</div>
+
+<script>
+  // =========================================================
+// SM‑DSLO‑90080 — Sovereign Millennium Substrate Runtime
+// =========================================================
+
+// Canvas contexts
+const cvNS  = document.getElementById("cv-ns");
+const cvYM  = document.getElementById("cv-ym");
+const cvRZ  = document.getElementById("cv-rz");
+const cvPNP = document.getElementById("cv-pnp");
+
+const nsCtx  = cvNS.getContext("2d");
+const ymCtx  = cvYM.getContext("2d");
+const rzCtx  = cvRZ.getContext("2d");
+const pnpCtx = cvPNP.getContext("2d");
+
+// Resize canvases to actual pixel size
+function resizeCanvas(cv) {
+  cv.width  = cv.clientWidth;
+  cv.height = cv.clientHeight;
+}
+resizeCanvas(cvNS);
+resizeCanvas(cvYM);
+resizeCanvas(cvRZ);
+resizeCanvas(cvPNP);
+
+// Divergence metrics
+let NS_div = 0;
+let YM_div = 0;
+let RZ_div = 0;
+let PNP_div = 0;
+
+let MODE = "PI_MATH";
+const ENTROPIC_CLAMP = 0.6;
+
+
+function applyPiMathAlignment(value, clamp = ENTROPIC_CLAMP) {
+  const harmonic = Math.sin(value * Math.PI) * 0.5 + 0.5; // [0,1]
+  return Math.min(clamp, harmonic);
+}
+
+
+
+// =========================================================
+// 1. NAVIER–STOKES MANIFOLD (Fluid Vorticity)
+// =========================================================
+function updateNavierStokes() {
+  const w = cvNS.width, h = cvNS.height;
+  nsCtx.fillStyle = "#000";
+  nsCtx.fillRect(0, 0, w, h);
+
+  // Vorticity field (base dots)
+  for (let i = 0; i < 140; i++) {
+    const x = Math.random() * w;
+    const y = Math.random() * h;
+    const r = 2 + Math.random() * 4;
+    const v = Math.sin((x + y) * 0.01 + performance.now() * 0.002);
+
+    nsCtx.fillStyle = `rgba(0,229,255,${0.4 + v * 0.4})`;
+    nsCtx.beginPath();
+    nsCtx.arc(x, y, r, 0, Math.PI * 2);
+    nsCtx.fill();
+  }
+
+  // Vorticity spirals (curl glyphs)
+  for (let i = 0; i < 40; i++) {
+    const x = Math.random() * w;
+    const y = Math.random() * h;
+    const magnitude = Math.abs(Math.sin((x - y) * 0.01 + performance.now() * 0.001));
+    drawVorticitySpiral(nsCtx, x, y, magnitude);
+  }
+
+  NS_div = Math.abs(Math.sin(performance.now() * 0.001)) * 0.8;
+  document.getElementById("m-vorticity").innerText = NS_div.toFixed(2);
+
+  drawClampOverlay(nsCtx, NS_div > ENTROPIC_CLAMP);
+}
+
+// =========================================================
+// Navier–Stokes Vorticity Spiral Glyph
+// =========================================================
+function drawVorticitySpiral(ctx, x, y, magnitude) {
+  ctx.save();
+  ctx.strokeStyle = `rgba(0, 200, 255, ${0.25 + magnitude * 0.5})`;
+  ctx.lineWidth = 1.5;
+
+  const arms = 5;
+  const radius = 6 + magnitude * 12;
+
+  ctx.beginPath();
+  for (let i = 0; i < arms; i++) {
+    const angle = i * (Math.PI * 2 / arms);
+    const px = x + Math.cos(angle + magnitude * 2) * radius;
+    const py = y + Math.sin(angle + magnitude * 2) * radius;
+    ctx.moveTo(x, y);
+    ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+
+// =========================================================
+// 2. YANG–MILLS MANIFOLD (Gauge Noise + Mass Gap)
+// =========================================================
+function updateYangMills() {
+  const w = cvYM.width, h = cvYM.height;
+  ymCtx.fillStyle = "#000";
+  ymCtx.fillRect(0, 0, w, h);
+
+  for (let i = 0; i < 120; i++) {
+    const x = Math.random() * w;
+    const y = Math.random() * h;
+    const amp = Math.random() * 0.6;
+
+    ymCtx.fillStyle = `rgba(255,51,102,${amp})`;
+    ymCtx.fillRect(x, y, 3, 3);
+  }
+
+  YM_div = Math.random() * 0.7;
+  document.getElementById("m-gauge").innerText = YM_div.toFixed(2);
+ drawClampOverlay(ymCtx, YM_div > ENTROPIC_CLAMP);
+}
+
+// =========================================================
+// 3. RIEMANN ZETA MANIFOLD (Critical Line Drift)
+// =========================================================
+function updateRiemannZeta() {
+  const w = cvRZ.width, h = cvRZ.height;
+
+  // Clear canvas
+  rzCtx.fillStyle = "#000";
+  rzCtx.fillRect(0, 0, w, h);
+
+  // Draw spectral wave
+  rzCtx.strokeStyle = "#00e5ff";
+  rzCtx.lineWidth = 2;
+  rzCtx.beginPath();
+
+  for (let x = 0; x < w; x++) {
+    const y = h / 2 +
+      Math.sin(x * 0.03 + performance.now() * 0.002) * 30 +
+      Math.sin(x * 0.007) * 10;
+
+    if (x === 0) rzCtx.moveTo(x, y);
+    else rzCtx.lineTo(x, y);
+  }
+  rzCtx.stroke();
+
+  // Divergence metric
+  RZ_div = Math.abs(Math.sin(performance.now() * 0.0007)) * 0.9;
+  document.getElementById("m-spectral").innerText = RZ_div.toFixed(2);
+
+  // Clamp ring
+  drawClampOverlay(rzCtx, RZ_div > ENTROPIC_CLAMP);
+
+  // Spectral alignment metric (0–1)
+  const alignment = 1 - Math.min(1, Math.abs(RZ_div - 0.5) / 0.5);
+
+  // Spectral alignment rings
+  drawSpectralAlignment(rzCtx, alignment);
+
+  // Spectral phase lattice
+  const phase = performance.now() * 0.001;
+  drawSpectralPhaseLattice(rzCtx, phase);
+}
+
+// =========================================================
+// Spectral Phase Lattice Overlay
+// =========================================================
+function drawSpectralPhaseLattice(ctx, phase) {
+  const w = ctx.canvas.width;
+  const h = ctx.canvas.height;
+
+  ctx.save();
+  ctx.strokeStyle = "rgba(0, 150, 255, 0.15)";
+  ctx.lineWidth = 1;
+
+  // Vertical phase lines
+  const spacingX = 40;
+  for (let x = 0; x < w; x += spacingX) {
+    const offset = Math.sin(phase + x * 0.01) * 10;
+    ctx.beginPath();
+    ctx.moveTo(x + offset, 0);
+    ctx.lineTo(x + offset, h);
+    ctx.stroke();
+  }
+
+  // Horizontal energy bands
+  const spacingY = 35;
+  for (let y = 0; y < h; y += spacingY) {
+    const offset = Math.cos(phase + y * 0.015) * 10;
+    ctx.beginPath();
+    ctx.moveTo(0, y + offset);
+    ctx.lineTo(w, y + offset);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawSpectralAlignment(ctx, alignment) {
+  const w = ctx.canvas.width;
+  const h = ctx.canvas.height;
+  const rBase = Math.min(w, h) * 0.20;
+
+  ctx.save();
+  ctx.strokeStyle = "rgba(102, 153, 255, 0.55)";
+  ctx.lineWidth = 2;
+
+  // Inner ring (critical line proximity)
+  ctx.beginPath();
+  ctx.arc(w / 2, h / 2, rBase, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Outer ring scaled by alignment
+  const rOuter = rBase + alignment * Math.min(w, h) * 0.15;
+  ctx.beginPath();
+  ctx.arc(w / 2, h / 2, rOuter, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+
+ 
+// =========================================================
+// 4. P vs NP MANIFOLD (Bounded Graph Traversal)
+// =========================================================
+function updatePNP() {
+  const w = cvPNP.width, h = cvPNP.height;
+  pnpCtx.fillStyle = "#000";
+  pnpCtx.fillRect(0, 0, w, h);
+
+  const nodes = 40;
+  const maxBranch = 3;
+
+  let points = [];
+  for (let i = 0; i < nodes; i++) {
+    points.push({
+      x: Math.random() * w,
+      y: Math.random() * h
+    });
+  }
+
+  pnpCtx.fillStyle = "#00ff88";
+  points.forEach(pt => {
+    pnpCtx.beginPath();
+    pnpCtx.arc(pt.x, pt.y, 2, 0, Math.PI * 2);
+    pnpCtx.fill();
+  });
+
+  pnpCtx.strokeStyle = "#00ff88";
+  points.forEach(pt => {
+    for (let j = 0; j < maxBranch; j++) {
+      const other = points[Math.floor(Math.random() * nodes)];
+      pnpCtx.beginPath();
+      pnpCtx.moveTo(pt.x, pt.y);
+      pnpCtx.lineTo(other.x, other.y);
+      pnpCtx.stroke();
+    }
+  });
+
+ PNP_div = Math.random() * 0.5 + 0.1;
+if (Math.random() < 0.10) {
+  PNP_div += 0.5;
+}
+;
+  document.getElementById("m-branching").innerText = PNP_div.toFixed(2);
+ drawClampOverlay(pnpCtx, PNP_div > ENTROPIC_CLAMP);
+}
+
+// =========================================================
+// 5. UNIFIED FALLBACK TENSOR (T_drift)
+// =========================================================
+function updateFallbackTensor() {
+  const fbNS  = document.getElementById("fb-ns");
+  const fbYM  = document.getElementById("fb-ym");
+  const fbRZ  = document.getElementById("fb-rz");
+  const fbPNP = document.getElementById("fb-pnp");
+  const fbSCMA = document.getElementById("fb-scma");
+
+  fbNS.innerText  = NS_div  > 0.6 ? "BREACH" : "NOMINAL";
+  fbYM.innerText  = YM_div  > 0.6 ? "BREACH" : "NOMINAL";
+  fbRZ.innerText  = RZ_div  > 0.6 ? "BREACH" : "NOMINAL";
+  fbPNP.innerText = PNP_div > 0.6 ? "BREACH" : "NOMINAL";
+
+  const breach =
+    NS_div > 0.6 ||
+    YM_div > 0.6 ||
+    RZ_div > 0.6 ||
+    PNP_div > 0.6;
+
+  fbSCMA.innerText = breach ? "BREACH" : "NOMINAL";
+
+  const status = document.getElementById("millennium-status");
+  status.className = breach ? "status-badge breach" : "status-badge";
+  status.innerText = breach ? "S = R = σ (BREACH)" : "S = R = σ (NOMINAL)";
+}
+
+// =========================================================
+// 6. JSON‑LD STATE TENSOR
+// =========================================================
+function updateJSONLD() {
+  const jsonld = {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    "dslo:nodeIdentifier": "SM-DSLO-90080",
+    "dslo:masterInvariant": "S = R = σ",
+    "dslo:manifolds": {
+      "navierStokes": NS_div,
+      "yangMills": YM_div,
+      "riemannZeta": RZ_div,
+      "pnpTraversal": PNP_div
+    },
+    "dslo:fallbackTensor": {
+      "NS": NS_div > 0.6 ? "BREACH" : "NOMINAL",
+      "YM": YM_div > 0.6 ? "BREACH" : "NOMINAL",
+      "RZ": RZ_div > 0.6 ? "BREACH" : "NOMINAL",
+      "PNP": PNP_div > 0.6 ? "BREACH" : "NOMINAL"
+    },
+    "dslo:operatorMode": MODE,
+    "dslo:entropicClamp": ENTROPIC_CLAMP,
+    "dslo:harmonicAlignment": MODE === "PI_MATH" ? "Π_math" : "Classical"
+  };
+
+  document.getElementById("jsonld-out").innerText =
+    JSON.stringify(jsonld, null, 2);
+}
+
+// =========================================================
+// 6B. Δ_max CLAMP OVERLAY (MOVED OUTSIDE MAIN LOOP)
+// =========================================================
+function drawClampOverlay(ctx, breach) {
+  if (!breach) return;
+
+  const w = ctx.canvas.width;
+  const h = ctx.canvas.height;
+  const r = Math.min(w, h) * 0.35;
+
+  ctx.save();
+  ctx.strokeStyle = "rgba(255, 51, 102, 0.45)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// =========================================================
+// 7. MAIN LOOP
+// =========================================================
+function renderMillennium() {
+  updateNavierStokes();
+  updateYangMills();
+  updateRiemannZeta();
+  updatePNP();
+
+  if (MODE === "PI_MATH") {
+    NS_div  = applyPiMathAlignment(NS_div);
+    YM_div  = applyPiMathAlignment(YM_div);
+    RZ_div  = applyPiMathAlignment(RZ_div);
+    PNP_div = applyPiMathAlignment(PNP_div);
+  }
+
+  updateFallbackTensor();
+  updateJSONLD();
+
+  requestAnimationFrame(renderMillennium);
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+
+  document.getElementById("mode-pi").onclick = () => {
+    MODE = "PI_MATH";
+  };
+
+  document.getElementById("mode-classical").onclick = () => {
+    MODE = "CLASSICAL";
+  };
+
+  renderMillennium();
+});
+
+</script>
+
+</body>
+</html>
 
