@@ -1,1 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DSLO Robotics Substrate Dashboard (SM-DSLO-90062)</title>
+
+<style>
+:root {
+  --bg: #05070a;
+  --card: #10141d;
+  --accent: #00e5ff;
+  --danger: #ff3366;
+  --text: #e0e6ed;
+  --subtext: #8a99ad;
+  --border: #1e2638;
+  --green: #00ff88;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
+body { background: var(--bg); color: var(--text); padding: 16px; font-size: 13px; }
+
+header {
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px;
+}
+
+h1 { font-size: 16px; color: var(--accent); letter-spacing: 1px; }
+.subhead { font-size: 11px; color: var(--subtext); }
+
+.status-badge {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid var(--green);
+  color: var(--green);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.status-badge.breach {
+  background: rgba(255, 51, 102, 0.1);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.grid-root {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.surface-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  overflow-y: auto;
+}
+
+.surface-title {
+  font-size: 10px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+.signal-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--subtext);
+}
+
+canvas {
+  width: 100%;
+  height: 120px;   /* ↓ smaller */
+  background: #000;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+pre {
+  font-size: 10px;
+  color: var(--green);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 160px;
+  overflow-y: auto;
+  background: #05070a;
+  padding: 6px;
+  border-radius: 4px;
+} /* ← this closing brace was missing */
+
+/* === SENSOR INPUT STACKING === */
+.input-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.input-row label {
+  margin-bottom: 2px;
+  font-size: 10px;
+  color: var(--subtext);
+}
+
+.input-row input[type="range"] {
+  width: 100%;
+}
+
+/* === ENVIRONMENT BUTTONS === */
+.env-btn {
+  background: #10141d;
+  border: 1px solid var(--border);
+  color: var(--accent);
+  padding: 4px 8px;
+  margin: 4px 0;
+  width: 100%;
+  text-align: left;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.env-btn:hover {
+  background: #0d1118;
+}
+
+/* === RUNTIME CHAIN PANEL === */
+.runtime-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.runtime-label {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.runtime-value {
+  font-size: 10px;
+  color: var(--subtext);
+}
+
+/* === SURFACE CARD STANDARDIZATION === */
+.surface-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  overflow-y: auto;
+}
+
+/* === RIGHT PANEL COMPACT FIX === */
+.panel:last-child .surface-card {
+  flex: 0 0 auto;        /* stop stretching */
+  height: auto;          /* shrink to content */
+  min-height: unset;     /* remove inherited min-height */
+}
+
+
+</style>
+
+
+</head>
+
+<body>
+
+<header>
+  <div>
+    <h1>DSLO Robotics Substrate Dashboard</h1>
+    <div class="subhead">
+      Node: SM-DSLO-90062 · Root: SM-DSLO-90060 · Metadata: SM-DSLO-90061
+    </div>
+  </div>
+  <div id="robotics-status" class="status-badge">S = R = σ (NOMINAL)</div>
+</header>
+
+<div class="grid-root">
+
+  <!-- LEFT PANEL -->
+  <div class="panel">
+
+    <div class="surface-card">
+      <div class="surface-title">ROBOTIC SENSOR INPUTS</div>
+
+      <div class="input-row">
+        <label>Force Gain</label>
+        <input type="range" id="gain-force" min="0" max="1" step="0.01" value="0.2">
+      </div>
+
+      <div class="input-row">
+        <label>IMU Gain</label>
+        <input type="range" id="gain-imu" min="0" max="1" step="0.01" value="0.2">
+      </div>
+
+      <div class="input-row">
+        <label>Proximity Gain</label>
+        <input type="range" id="gain-prox" min="0" max="1" step="0.01" value="0.2">
+      </div>
+
+      <div class="input-row">
+        <label>Friction Gain</label>
+        <input type="range" id="gain-fric" min="0" max="1" step="0.01" value="0.2">
+      </div>
+
+      <div class="input-row">
+        <label>Noise Floor</label>
+        <input type="range" id="noise-floor" min="0" max="0.3" step="0.01" value="0.05">
+      </div>
+
+      <div class="input-row">
+        <label>Posture Stability</label>
+        <input type="range" id="posture-stab" min="0" max="1" step="0.01" value="0.5">
+      </div>
+
+      <div class="input-row">
+        <label>Invariant Fallback Clamp</label>
+        <input type="range" id="inv-F" min="0" max="1" step="0.01" value="0.7">
+      </div>
+
+      <div class="input-row">
+        <label>Signal Rate</label>
+        <input type="range" id="signal-rate" min="0.05" max="1" step="0.05" value="0.5">
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">ENVIRONMENT</div>
+
+      <button class="env-btn" onclick="setEnvironment('nominal')">Nominal</button>
+      <button class="env-btn" onclick="setEnvironment('highNoise')">High Noise</button>
+      <button class="env-btn" onclick="setEnvironment('highRate')">High Rate</button>
+      <button class="env-btn" onclick="setEnvironment('tightBoundaries')">Tight Boundaries</button>
+      <button class="env-btn" onclick="setEnvironment('looseBoundaries')">Loose Boundaries</button>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">CAPABILITY CONTAINER</div>
+
+      <div class="signal-row"><span>C (Unified Capability)</span><span id="cap-C">0.00</span></div>
+      <div class="signal-row"><span>C₁ Structural Coherence</span><span id="cap-C1">0.00</span></div>
+      <div class="signal-row"><span>C₂ Semantic Lift</span><span id="cap-C2">0.00</span></div>
+      <div class="signal-row"><span>C₃ Action Eligibility</span><span id="cap-C3">0.00</span></div>
+      <div class="signal-row"><span>Status</span><span id="cap-status">NOMINAL</span></div>
+    </div>
+
+  </div>
+
+
+  <!-- CENTER PANEL -->
+  <div class="panel">
+
+    <div class="surface-card">
+      <div class="surface-title">ROBOTICS SIGNAL ARRAY</div>
+      <div class="signal-row"><span>G</span><span id="sig-G">0.00</span></div>
+      <div class="signal-row"><span>S</span><span id="sig-S">0.00</span></div>
+      <div class="signal-row"><span>C</span><span id="sig-C">0.00</span></div>
+      <div class="signal-row"><span>P</span><span id="sig-P">0.00</span></div>
+      <div class="signal-row"><span>E</span><span id="sig-E">IDLE</span></div>
+      <div class="signal-row"><span>D</span><span id="sig-D">0.00</span></div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">SCMA‑F RUNTIME LOOP</div>
+      <div class="signal-row"><span>Sense</span><span id="tr-sense">OK</span></div>
+      <div class="signal-row"><span>Coherence</span><span id="tr-coh">OK</span></div>
+      <div class="signal-row"><span>Meaning</span><span id="tr-meaning">VALID</span></div>
+      <div class="signal-row"><span>Action</span><span id="tr-action">READY</span></div>
+      <div class="signal-row"><span>Fallback</span><span id="tr-fallback">NOMINAL</span></div>
+    </div>
+
+    <!-- RUNTIME CHAIN MOVED HERE -->
+    <div class="surface-card">
+      <div class="surface-title">RUNTIME CHAIN (S → R → O → S → C → M → A → F)</div>
+
+      <div class="runtime-row"><span class="runtime-label">S — Sense</span><span class="runtime-value">Force, IMU, Proximity, Friction</span></div>
+      <div class="runtime-row"><span class="runtime-label">R — Relate</span><span class="runtime-value">Noise Floor modulation</span></div>
+      <div class="runtime-row"><span class="runtime-label">O — Orient</span><span class="runtime-value">Posture Stability envelope</span></div>
+      <div class="runtime-row"><span class="runtime-label">S — Shape</span><span class="runtime-value">Gradient G formation</span></div>
+      <div class="runtime-row"><span class="runtime-label">C — Coherence</span><span class="runtime-value">Capability container (C1, C2, C3)</span></div>
+      <div class="runtime-row"><span class="runtime-label">M — Meaning</span><span class="runtime-value">Execution primitive eligibility</span></div>
+      <div class="runtime-row"><span class="runtime-label">A — Action</span><span class="runtime-value">Execution primitive (E)</span></div>
+      <div class="runtime-row"><span class="runtime-label">F — Fallback</span><span class="runtime-value">Invariant Fallback Clamp</span></div>
+    </div>
+
+  </div>
+
+
+  <!-- RIGHT PANEL -->
+  <div class="panel">
+
+    <div class="surface-card">
+      <div class="surface-title">ROBOTIC GRADIENT WAVEFORM</div>
+      <canvas id="scope"></canvas>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">INVARIANT SUBSTRATE VISUAL</div>
+      <canvas id="invariant-canvas"></canvas>
+    </div>
+
+    <div class="surface-card" style="flex:1;">
+      <div class="surface-title">JSON‑LD RUNTIME STATE</div>
+      <pre id="jsonld-out">Initializing DSLO Robotics JSON‑LD state...</pre>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// =========================================================
+// PASS 2 — UNIFIED ROBOTICS SIGNAL ENGINE
+// =========================================================
+
+let fallbackState = "NOMINAL";
+
+// =========================================================
+// ENVIRONMENT SYSTEM ROOT
+// =========================================================
+
+const ENVIRONMENTS = {
+  nominal: {
+    drift: 0.15,
+    coherence: 0.3,
+    posture: 0.6,
+    execute: 0.5,
+    noiseMultiplier: 1,
+    rateMultiplier: 1
+  },
+
+  highNoise: {
+    drift: 0.12,
+    coherence: 0.35,
+    posture: 0.55,
+    execute: 0.5,
+    noiseMultiplier: 2,
+    rateMultiplier: 1
+  },
+
+  highRate: {
+    drift: 0.15,
+    coherence: 0.3,
+    posture: 0.6,
+    execute: 0.5,
+    noiseMultiplier: 1,
+    rateMultiplier: 2
+  },
+
+  tightBoundaries: {
+    drift: 0.10,
+    coherence: 0.4,
+    posture: 0.5,
+    execute: 0.6,
+    noiseMultiplier: 1,
+    rateMultiplier: 1
+  },
+
+  looseBoundaries: {
+    drift: 0.25,
+    coherence: 0.2,
+    posture: 0.8,
+    execute: 0.4,
+    noiseMultiplier: 1,
+    rateMultiplier: 1
+  }
+};
+
+// ACTIVE ENVIRONMENT STATE
+let ACTIVE_ENV = ENVIRONMENTS.nominal;
+let ACTIVE_ENV_NAME = "nominal";
+
+function setEnvironment(envName) {
+  ACTIVE_ENV = ENVIRONMENTS[envName];
+  ACTIVE_ENV_NAME = envName;
+}
+
+
+function renderRobotics() {
+
+  const gainForce = parseFloat(document.getElementById('gain-force').value);
+  const gainIMU   = parseFloat(document.getElementById('gain-imu').value);
+  const gainProx  = parseFloat(document.getElementById('gain-prox').value);
+  const gainFric  = parseFloat(document.getElementById('gain-fric').value);
+  const noise     = parseFloat(document.getElementById('noise-floor').value) * ACTIVE_ENV.noiseMultiplier;
+  const Pslider   = parseFloat(document.getElementById('posture-stab').value);
+  const rate      = parseFloat(document.getElementById('signal-rate').value) * ACTIVE_ENV.rateMultiplier;
+
+  const force = noise + Math.random() * gainForce;
+  const imu   = noise + Math.random() * gainIMU;
+  const prox  = noise + Math.random() * gainProx;
+  const fric  = noise + Math.random() * gainFric;
+
+  const G = (force + imu + prox + fric) / 4;
+  const S = 0.3 + G * 0.7;
+  const C = 0.2 + S * 0.6;
+  const P = Pslider;
+  const D = Math.abs(0.2 - G) * 0.5;
+  const E = (C > 0.5 && P > 0.5 && D < 0.15) ? "EXECUTE" : "IDLE";
+
+  document.getElementById('sig-G').innerText = G.toFixed(2);
+  document.getElementById('sig-S').innerText = S.toFixed(2);
+  document.getElementById('sig-C').innerText = C.toFixed(2);
+  document.getElementById('sig-P').innerText = P.toFixed(2);
+  document.getElementById('sig-E').innerText = E;
+  document.getElementById('sig-D').innerText = D.toFixed(2);
+
+  const trSense   = (G > 0.1 ? "OK" : "LOW");
+  const trCoherence = (C > 0.3 ? "OK" : "UNSTABLE");
+  const trMeaning = (C > 0.5 ? "VALID" : "NONE");
+  const trAction  = (E === "EXECUTE" ? "READY" : "IDLE");
+  const trFallback = (D > 0.15 ? "TRIGGER" : "NOMINAL");
+
+  document.getElementById('tr-sense').innerText   = trSense;
+  document.getElementById('tr-coh').innerText     = trCoherence;
+  document.getElementById('tr-meaning').innerText = trMeaning;
+  document.getElementById('tr-action').innerText  = trAction;
+  document.getElementById('tr-fallback').innerText= trFallback;
+
+  // CAPABILITY CONTAINER DECOMPOSITION
+  const C1 = Math.min(1, S * 0.8);
+  const C2 = Math.min(1, C * 0.9);
+  const C3 = (E === "EXECUTE" ? 1 : C * 0.6);
+
+  document.getElementById('cap-C').innerText  = C.toFixed(2);
+  document.getElementById('cap-C1').innerText = C1.toFixed(2);
+  document.getElementById('cap-C2').innerText = C2.toFixed(2);
+  document.getElementById('cap-C3').innerText = C3.toFixed(2);
+
+  let capStatus = "NOMINAL";
+  if (C < 0.3) capStatus = "LOW";
+  if (C < 0.2) capStatus = "CRITICAL";
+  document.getElementById('cap-status').innerText = capStatus;
+
+  const fallback = updateFallbackState(G, S, C, P, E, D);
+
+  updateJSONLD(G, S, C, P, E, D, fallback, C1, C2, C3);
+
+  const jsonld = {
+    "@context": "https://schema.org",
+    "@type": "Observation",
+
+    "dslo:nodeIdentifier": "DSLO-ROBOTICS-SUBSTRATE-v0.9",
+    "dslo:staticReleaseID": "SM-DSLO-90062",
+    "dslo:rootLineage": "SM-DSLO-90060",
+    "dslo:metadataRoot": "SM-DSLO-90061",
+    "dslo:masterInvariant": "S = R = σ",
+
+    "dslo:runtimeLoop": "Sense → Coherence → Meaning → Action → Fallback",
+
+    "dslo:fallbackState": fallback,
+
+    "dslo:signals": {
+      "G_gradient": G,
+      "S_runtimeSense": S,
+      "C_capabilityContainer": C,
+      "P_postureEnvelope": P,
+      "E_executionPrimitive": E,
+      "D_driftTwin": D
+    },
+
+    "dslo:capabilityContainer": {
+      "C_unified": C,
+      "C1_structuralCoherence": C1,
+      "C2_semanticLift": C2,
+      "C3_actionEligibility": C3
+    },
+
+    "dslo:environment": {
+      "active": ACTIVE_ENV_NAME,
+      "driftTolerance": ACTIVE_ENV.drift,
+      "coherenceMin": ACTIVE_ENV.coherence,
+      "postureMax": ACTIVE_ENV.posture,
+      "executionThreshold": ACTIVE_ENV.execute,
+      "noiseMultiplier": ACTIVE_ENV.noiseMultiplier,
+      "rateMultiplier": ACTIVE_ENV.rateMultiplier
+    },
+
+    "dslo:tolerances": {
+      "drift_breach": 0.15,
+      "coherence_min": 0.3,
+      "posture_max": 0.6,
+      "execution_requirements": {
+        "min_coherence": 0.5,
+        "min_posture": 0.5,
+        "max_drift": 0.15
+      }
+    }
+  };
+
+  document.getElementById('jsonld-out').innerText =
+    JSON.stringify(jsonld, null, 2);
+
+  updateJSONLD(G, S, C, P, E, D, fallback, C1, C2, C3);
+  updateJSONLDColor(fallback);
+
+  drawWaveform(G, P, D, rate);
+  drawInvariant(G, D, P, rate);
+
+  requestAnimationFrame(renderRobotics);
+}
+
+
+
+
+
+
+// =========================================================
+// PASS 3 — UNIFIED VISUAL ENGINE
+// =========================================================
+
+const scope = document.getElementById('scope');
+const ctx = scope.getContext('2d');
+
+const invCanvas = document.getElementById('invariant-canvas');
+const invCtx = invCanvas.getContext('2d');
+
+let waveStep = 0;
+let invStep = 0;
+
+const invParticles = [];
+const INV_COUNT = 180;
+
+function initInvariantParticles() {
+  const rect = invCanvas.getBoundingClientRect();
+  invCanvas.width = rect.width;
+  invCanvas.height = rect.height;
+
+  invParticles.length = 0;
+
+  for (let i = 0; i < INV_COUNT; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = (invCanvas.height * 0.18) + Math.random() * (invCanvas.height * 0.18);
+
+    invParticles.push({
+      angle,
+      radius,
+      baseRadius: radius,
+      jitterPhase: Math.random() * Math.PI * 2
+    });
+  }
+}
+
+function drawWaveform(G, P, D, rate) {
+  const rect = scope.getBoundingClientRect();
+  scope.width = rect.width;
+  scope.height = rect.height;
+
+  ctx.fillStyle = '#05070a';
+  ctx.fillRect(0, 0, scope.width, scope.height);
+
+  const F = parseFloat(document.getElementById('inv-F').value);
+  const breach = (D > F || P > F);
+
+  waveStep += (P * 8 * rate);
+
+  ctx.beginPath();
+  ctx.strokeStyle = breach ? '#ff3366' : '#00e5ff';
+  ctx.lineWidth = 2;
+
+  for (let x = 0; x < scope.width; x++) {
+    const y = scope.height / 2 +
+      Math.sin((x + waveStep) * 0.03) * (G * 180 + P * 80);
+
+    if (x === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+
+  ctx.stroke();
+}
+
+function drawInvariant(G, D, P, rate) {
+  const rect = invCanvas.getBoundingClientRect();
+  invCanvas.width = rect.width;
+  invCanvas.height = rect.height;
+
+  const F = parseFloat(document.getElementById('inv-F').value);
+  const cx = invCanvas.width / 2;
+  const cy = invCanvas.height / 2;
+
+  invCtx.fillStyle = "#05070a";
+  invCtx.fillRect(0, 0, invCanvas.width, invCanvas.height);
+
+  const breach = (D > F || P > F);
+  invStep += (0.01 + G * 0.03) * rate;
+
+  invParticles.forEach(p => {
+    if (breach) {
+      p.radius *= 0.9;
+      if (p.radius < invCanvas.height * 0.05) p.radius = invCanvas.height * 0.05;
+    } else {
+      p.angle += (0.002 + G * 0.02) * rate;
+      const driftNoise = D * 0.4;
+      p.jitterPhase += 0.03 * rate;
+      const jitter = driftNoise * Math.sin(p.jitterPhase * 3.7);
+      p.radius = p.baseRadius + jitter * invCanvas.height * 0.1;
+    }
+
+    const x = cx + Math.cos(p.angle) * p.radius;
+    const y = cy + Math.sin(p.angle) * p.radius;
+
+    const alpha = breach ? 0.9 : (0.3 + G * 0.4);
+    invCtx.fillStyle = breach
+      ? `rgba(255,51,102,${alpha})`
+      : `rgba(0,229,255,${alpha})`;
+
+    invCtx.beginPath();
+    invCtx.arc(x, y, 2.2, 0, Math.PI * 2);
+    invCtx.fill();
+  });
+
+  const baseRadius = invCanvas.height * 0.12;
+  const stretch = P * 0.4;
+
+  const hexRadiusX = baseRadius * (1 + stretch);
+  const hexRadiusY = baseRadius * (1 - stretch * 0.5);
+
+  const hexPoints = [];
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI * 2 / 6) * i + invStep * 0.4;
+    const x = cx + Math.cos(angle) * hexRadiusX;
+    const y = cy + Math.sin(angle) * hexRadiusY;
+    hexPoints.push({ x, y });
+  }
+
+  invCtx.beginPath();
+  hexPoints.forEach((pt, idx) => {
+    if (idx === 0) invCtx.moveTo(pt.x, pt.y);
+    else invCtx.lineTo(pt.x, pt.y);
+  });
+  invCtx.closePath();
+
+  let hexColor = "#00e5ff";
+  if (P > 0.6 && !breach) hexColor = "#ffcc00";
+  if (breach) hexColor = "#ff3366";
+
+  invCtx.strokeStyle = hexColor;
+  invCtx.lineWidth = 2;
+  invCtx.stroke();
+
+  invCtx.fillStyle = breach
+    ? "rgba(255,51,102,0.12)"
+    : "rgba(0,229,255,0.08)";
+  invCtx.fill();
+}
+
+// =========================================================
+// PASS 4 — FALLBACK TENSOR
+// =========================================================
+
+const ROBOTICS_TOLERANCES = {
+  drift: 0.15,
+  coherence: 0.3,
+  posture: 0.6,
+  execute: 0.5
+};
+
+function computeRoboticsFallback(G, S, C, P, E, D) {
+  if (D > ACTIVE_ENV.drift) return "DRIFT BREACH";
+  if (C < ACTIVE_ENV.coherence) return "COHERENCE BREACH";
+  if (P > ACTIVE_ENV.posture) return "POSTURE BREACH";
+  if (E !== "EXECUTE" && C > ACTIVE_ENV.execute) return "EXECUTION BREACH";
+  return "NOMINAL";
+}
+
+function updateFallbackState(G, S, C, P, E, D) {
+  const fallback = computeRoboticsFallback(G, S, C, P, E, D);
+  const status = document.getElementById('robotics-status');
+
+  if (fallback !== "NOMINAL") {
+    status.className = "status-badge breach";
+    status.innerText = `S = R = σ (${fallback})`;
+  } else {
+    status.className = "status-badge";
+    status.innerText = "S = R = σ (NOMINAL)";
+  }
+
+  return fallback;
+}   // ← REQUIRED CLOSING BRACE
+
+function updateJSONLDColor(fallback) {
+  const jsonldOut = document.getElementById('jsonld-out');
+
+  if (fallback !== "NOMINAL") {
+    jsonldOut.style.color = "#ff3366";   // red on breach
+  } else {
+    jsonldOut.style.color = "#00ff88";   // green on nominal
+  }
+}
+
+// =========================================================
+// PASS 5 — JSON‑LD EXPORT
+// =========================================================
+
+function updateJSONLD(G, S, C, P, E, D, fallback, C1, C2, C3) {
+
+  const jsonld = {
+    "@context": "https://schema.org",
+    "@type": "Observation",
+
+    "dslo:nodeIdentifier": "DSLO-ROBOTICS-SUBSTRATE-v0.9",
+    "dslo:staticReleaseID": "SM-DSLO-90062",
+    "dslo:rootLineage": "SM-DSLO-90060",
+    "dslo:metadataRoot": "SM-DSLO-90061",
+    "dslo:masterInvariant": "S = R = σ",
+
+    "dslo:runtimeLoop": "Sense → Coherence → Meaning → Action → Fallback",
+
+    "dslo:fallbackState": fallback,
+
+    "dslo:signals": {
+      "G_gradient": G,
+      "S_runtimeSense": S,
+      "C_capabilityContainer": C,
+      "P_postureEnvelope": P,
+      "E_executionPrimitive": E,
+      "D_driftTwin": D
+    },
+
+    "dslo:capabilityContainer": {
+      "C_unified": C,
+      "C1_structuralCoherence": C1,
+      "C2_semanticLift": C2,
+      "C3_actionEligibility": C3
+    },
+
+    "dslo:environment": {
+      "active": ACTIVE_ENV_NAME,
+      "driftTolerance": ACTIVE_ENV.drift,
+      "coherenceMin": ACTIVE_ENV.coherence,
+      "postureMax": ACTIVE_ENV.posture,
+      "executionThreshold": ACTIVE_ENV.execute,
+      "noiseMultiplier": ACTIVE_ENV.noiseMultiplier,
+      "rateMultiplier": ACTIVE_ENV.rateMultiplier
+    },
+
+    "dslo:tolerances": {
+      "drift_breach": 0.15,
+      "coherence_min": 0.3,
+      "posture_max": 0.6,
+      "execution_requirements": {
+        "min_coherence": 0.5,
+        "min_posture": 0.5,
+        "max_drift": 0.15
+      }
+    }
+  };
+
+  document.getElementById('jsonld-out').innerText =
+    JSON.stringify(jsonld, null, 2);
+
+  updateJSONLDColor(fallback);
+}
+
+function updateJSONLDColor(fallback) {
+  const jsonldOut = document.getElementById('jsonld-out');
+
+  if (fallback !== "NOMINAL") {
+    jsonldOut.style.color = "#ff3366";   // red on breach
+  } else {
+    jsonldOut.style.color = "#00ff88";   // green on nominal
+  }
+}
+
+
+// =========================================================
+// MAIN LOOP STARTUP
+// =========================================================
+
+window.addEventListener("DOMContentLoaded", () => {
+  initInvariantParticles();
+  renderRobotics();
+  requestAnimationFrame(renderRobotics);
+});
+</script>
+
+</body>
+</html>
 
