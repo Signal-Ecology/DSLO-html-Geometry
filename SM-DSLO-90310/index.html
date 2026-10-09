@@ -1,1 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SM-DSLO-90310: Sovereign Autonomous Power Grid Coherence Surface</title>
+<style>
+:root {
+  --bg: #05070a;
+  --card: #10141d;
+  --accent: #00e5ff;
+  --accent-soft: rgba(0, 229, 255, 0.18);
+  --danger: #ff3366;
+  --danger-soft: rgba(255, 51, 102, 0.18);
+  --text: #e0e6ed;
+  --subtext: #8a99ad;
+  --border: #1e2638;
+  --green: #00ff88;
+  --panel-glow: rgba(0, 229, 255, 0.04);
+  --panel-border: var(--border);
+  --amber: #ffcc33;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
+body { background: var(--bg); color: var(--text); padding: 16px; font-size: 13px; }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  transition: border-color 0.4s ease;
+}
+h1 { font-size: 16px; color: var(--accent); letter-spacing: 1px; }
+.subhead { font-size: 11px; color: var(--subtext); margin-top: 2px; }
+.badge-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.status-badge {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid var(--green);
+  color: var(--green);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+.status-badge.breach {
+  background: rgba(255, 51, 102, 0.1);
+  border-color: var(--danger);
+  color: var(--danger);
+  animation: alert-pulse 1.5s infinite alternate;
+}
+.status-badge.warn {
+  background: rgba(255, 204, 51, 0.08);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.grid-root {
+  display: grid;
+  grid-template-columns: 1.15fr 1.1fr 1.35fr;
+  gap: 12px;
+}
+.panel {
+  background: var(--card);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: inset 0 0 20px var(--panel-glow);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s ease;
+}
+.surface-card {
+  background: rgba(16, 20, 29, 0.7);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  transition: border-color 0.4s ease, background 0.4s ease;
+}
+.surface-title {
+  font-size: 10px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+.surface-title span.tag {
+  font-size: 9px;
+  color: var(--subtext);
+  text-transform: none;
+  margin-left: 4px;
+}
+.text-row {
+  font-size: 10px;
+  color: var(--subtext);
+  margin: 2px 0;
+}
+.text-row b { color: var(--text); }
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.mode-btn {
+  background: #10141d;
+  border: 1px solid var(--panel-border);
+  color: var(--accent);
+  padding: 6px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+.mode-btn:hover { background: #0d1118; border-color: var(--accent); }
+.mode-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.mode-btn.scenario {
+  color: var(--subtext);
+  border-style: dashed;
+}
+.mode-btn.scenario.active {
+  color: var(--amber);
+  border-color: var(--amber);
+  background: rgba(255, 204, 51, 0.08);
+}
+.audio-btn {
+  width: 100%;
+  background: #15202b;
+  border: 1px solid #22303c;
+  color: var(--subtext);
+  padding: 6px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: bold;
+  margin-top: 6px;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+.audio-btn.enabled {
+  background: rgba(0, 255, 136, 0.15);
+  border-color: var(--green);
+  color: var(--green);
+}
+.audio-btn.warn {
+  background: rgba(255, 204, 51, 0.12);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+canvas {
+  width: 100%;
+  height: 120px;
+  background: #000;
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+  display: block;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+canvas.projection-3d { height: 210px; cursor: grab; }
+canvas.radar-scope { height: 160px; }
+canvas.frequency-scope { height: 80px; }
+canvas.projection-3d:active { cursor: grabbing; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  margin-top: 4px;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 4px 6px;
+  text-align: left;
+}
+th {
+  background: #0b1118;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+tr.alert-row {
+  color: var(--danger);
+  background: rgba(255, 51, 102, 0.05);
+}
+tr.warn-row {
+  color: var(--amber);
+  background: rgba(255, 204, 51, 0.05);
+}
+pre {
+  font-size: 10px;
+  color: var(--green);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 140px;
+  overflow-y: auto;
+  background: #05070a;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+}
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--subtext);
+  margin: 2px 0;
+}
+.metric-row span:last-child {
+  color: var(--text);
+  font-weight: bold;
+}
+.slider-group {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.slider-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.slider-container label {
+  font-size: 9px;
+  color: var(--subtext);
+  width: 115px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.slider-container input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent);
+  cursor: pointer;
+  height: 4px;
+}
+.slider-container span.value {
+  font-size: 9px;
+  color: var(--text);
+  width: 40px;
+  text-align: right;
+}
+.small-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.tagline {
+  font-size: 9px;
+  color: var(--subtext);
+  margin-top: 2px;
+}
+@keyframes alert-pulse {
+  from { box-shadow: 0 0 4px rgba(255, 51, 102, 0.2); }
+  to { box-shadow: 0 0 12px rgba(255, 51, 102, 0.6); }
+}
+.footer-center-pane {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.footer-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 1rem;
+  background: #0f172a;
+  border-radius: 0.6rem;
+  border: 1px solid var(--dslo-border);
+}
+.dslo-btn {
+  display: inline-block;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--dslo-border);
+  background: #0f172a;
+  text-decoration: none;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  transition: 0.2s ease;
+}
+
+.dslo-btn:hover {
+  background: #111827;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.link-sigma { color: var(--dslo-sigma); }
+.link-rho   { color: var(--dslo-rho); }
+.link-s     { color: var(--dslo-s); }
+.link-pi    { color: var(--dslo-pi); }
+
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>SM-DSLO-90310: Sovereign Autonomous Power Grid Coherence Surface</h1>
+    <div class="subhead">
+      Node: SM-DSLO-90310 · Domain: Synchrophasor Microgrid Manifold · Root: SM-DSLO-90060 · Invariant: S = R = σ
+    </div>
+    <div class="tagline">
+      Demonstration geometry only · Synthetic metrics · Non-operational · 10.5281/zenodo.22736043
+    </div>
+  </div>
+  <div>
+    <div class="badge-row">
+      <div id="cog-status" class="status-badge">S = R = σ (NOMINAL)</div>
+      <div id="mode-badge" class="status-badge warn">Mode: Π_coherence</div>
+      <div id="scenario-badge" class="status-badge">Scenario: Idle Microgrid</div>
+    </div>
+  </div>
+</header>
+
+<div class="grid-root">
+  <!-- LEFT PANEL: Operator Controls & Synchrophasor / Frequency -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">GRID ALIGNMENT OPERATOR <span class="tag">(S–R–σ Triad)</span></div>
+      <div class="text-row">
+        <b>S:</b> Scheduled base vector (target phase & frequency)<br>
+        <b>R:</b> Telemetry reality vector (PMU / synchrophasor field)<br>
+        <b>σ:</b> Stabilizing observer vector (DSLO injection manifold)
+      </div>
+      <div class="btn-row">
+        <button class="mode-btn active" id="mode-pi">Π_coherence (Triad locked)</button>
+        <button class="mode-btn" id="mode-classical">Legacy loop (unconstrained)</button>
+        <button class="mode-btn" id="mode-freeze">Freeze geometry snapshot</button>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">SCENARIO PROFILE SELECTOR <span class="tag">(Synthetic)</span></div>
+      <div class="btn-row">
+        <button class="mode-btn scenario active" data-scenario="idle" id="scn-idle">Idle Microgrid</button>
+        <button class="mode-btn scenario" data-scenario="renewable-surge" id="scn-renew">Solar/Wind Surge</button>
+        <button class="mode-btn scenario" data-scenario="industrial-spike" id="scn-industrial">Heavy Industrial Spike</button>
+        <button class="mode-btn scenario" data-scenario="fault" id="scn-fault">Synthetic Line Fault</button>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">GRID FREQUENCY SYNTHESIS SCOPE <span class="tag">(Audio + Visual)</span></div>
+      <canvas id="cv-frequency" class="frequency-scope"></canvas>
+      <button class="audio-btn" id="audio-toggle">Beacon Muted (Click to Initialize)</button>
+      <div class="text-row">
+        Baseline hum tracks synthetic grid frequency; alarm layer activates when coherence thresholds are exceeded.
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">SYNCHROPHASOR PHASE RADAR</div>
+      <canvas id="cv-radar" class="radar-scope"></canvas>
+      <div class="text-row">
+        Phase-circle projection of S, R, σ vectors in synthetic angle space.
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER PANEL: 3D Tensor Projection & Distortion Injectors -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">3D PHASE–LOAD MANIFOLD (S–R–σ Tensor)</div>
+      <div class="text-row" style="color: var(--accent); font-size:9px;">
+        Drag to rotate · Scroll to zoom · Triad geometry responds to synthetic distortions and scenario presets.
+      </div>
+      <canvas id="cv-3d" class="projection-3d"></canvas>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">THERMODYNAMIC GRID DISTORTION INJECTION</div>
+      <div class="slider-group">
+        <div class="slider-container">
+          <label title="Phase displacement between scheduled and telemetry vectors">Δ_phase_displacement</label>
+          <input type="range" id="inj-phase" min="0" max="1.2" step="0.01" value="0.12">
+          <span class="value" id="val-phase">0.12</span>
+        </div>
+        <div class="slider-container">
+          <label title="Harmonic shear / spectral drift in the grid">T_harmonic_shear</label>
+          <input type="range" id="inj-harmonic" min="0" max="1.2" step="0.01" value="0.18">
+          <span class="value" id="val-harmonic">0.18</span>
+        </div>
+        <div class="slider-container">
+          <label title="Synthetic impedance / reactive envelope distortion">SCMA_impedance_envelope</label>
+          <input type="range" id="inj-impedance" min="0" max="1.2" step="0.01" value="0.08">
+          <span class="value" id="val-impedance">0.08</span>
+        </div>
+      </div>
+      <div class="text-row">
+        Sliders inject synthetic distortions into the manifold; Π_coherence clamps excursions above the invariant threshold.
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">S–R–σ TRIAD SNAPSHOT</div>
+      <div class="small-grid">
+        <div>
+          <div class="metric-row"><span>S: Scheduled phase</span><span id="triad-S">N/A</span></div>
+          <div class="metric-row"><span>R: Telemetry phase</span><span id="triad-R">N/A</span></div>
+          <div class="metric-row"><span>σ: Injection phase</span><span id="triad-O">N/A</span></div>
+        </div>
+        <div>
+          <div class="metric-row"><span>Triad spread |S−R|</span><span id="triad-spread-SR">N/A</span></div>
+          <div class="metric-row"><span>Triad spread |R−σ|</span><span id="triad-spread-RO">N/A</span></div>
+          <div class="metric-row"><span>Triad spread |S−σ|</span><span id="triad-spread-SO">N/A</span></div>
+        </div>
+      </div>
+    </div>
+
+<div class="footer-center-pane">
+  <div class="footer-buttons">
+
+    <a href="https://zenodo.org/records/22736043"
+       class="dslo-btn link-sigma" target="_blank">
+       The Root of Modern Technology and Communication
+    </a>
+
+    <a href="https://www.tnopsi.com"
+       class="dslo-btn link-pi" target="_blank">
+       DSLO — The Semantic Substrate
+    </a>
+
+    <a href="https://www.tnopsi.com/sm-dslo-90080"
+       class="dslo-btn link-rho" target="_blank">
+       The Millennium Substrate
+    </a>
+
+  </div>
+</div>
+
+
+  </div>
+
+  <!-- RIGHT PANEL: Substation Registry, Metrics, JSON-LD -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">SUBSTATION PMU TRANSPONDER REGISTRY</div>
+      <div style="max-height: 120px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Node ID</th>
+              <th>Bus</th>
+              <th>Δ_phase</th>
+              <th>Drift</th>
+              <th>Impedance</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="transponder-tbody">
+            <!-- Populated by runtime -->
+          </tbody>
+        </table>
+      </div>
+      <div class="text-row">
+        Synthetic registry of substation PMU nodes; status reflects current distortion envelope relative to invariant clamp.
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">UNIFIED GRID COHERENCE METRICS</div>
+      <div class="metric-row"><span>Phase displacement metric</span><span id="m-phase">N/A</span></div>
+      <div class="metric-row"><span>Harmonic shear metric</span><span id="m-harmonic">N/A</span></div>
+      <div class="metric-row"><span>Impedance envelope metric</span><span id="m-impedance">N/A</span></div>
+      <div class="metric-row" style="border-top: 1px solid #1e2638; padding-top: 2px;">
+        <span>System invariant state</span><span id="fb-invariant">NOMINAL</span>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">JSON-LD COHERENCE MANIFEST (.schema)</div>
+      <pre id="jsonld-out">Initializing synthetic grid coherence manifest...</pre>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">RUNTIME DIAGNOSTIC TRACE</div>
+      <pre id="diag-out">Runtime trace will appear here as the manifold evolves.</pre>
+    </div>
+  </div>
+
+<footer id="footer-band" class="dslo-footer">
+
+  <div class="footer-center-pane">
+    <button id="export-json"
+            class="dslo-btn link-sigma"
+            data-dslo-operator="Π_context"
+            data-dslo-surface="snapshot">
+      Export JSON Snapshot
+    </button>
+  </div>
+
+</footer>
+
+
+</div>
+
+<script>
+// ================================
+// Web Audio Context Synthesizer Core
+// ================================
+let audioCtx = null, baseOsc = null, alarmOsc = null, baseGain = null, alarmGain = null, audioAnalyser = null;
+let audioBufferLength = 0, audioDataArray = null, audioEnabled = false;
+
+const cvFrequency = document.getElementById("cv-frequency");
+const ctxFrequency = cvFrequency.getContext("2d");
+
+function initAudioEngine() {
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioAnalyser = audioCtx.createAnalyser();
+    audioAnalyser.fftSize = 512;
+    audioBufferLength = audioAnalyser.frequencyBinCount;
+    audioDataArray = new Uint8Array(audioBufferLength);
+
+    baseOsc = audioCtx.createOscillator();
+    baseOsc.type = 'sine';
+    baseOsc.frequency.setValueAtTime(60.0, audioCtx.currentTime); // synthetic grid hum
+
+    baseGain = audioCtx.createGain();
+    baseGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+
+    baseOsc.connect(baseGain);
+    baseGain.connect(audioAnalyser);
+
+    alarmOsc = audioCtx.createOscillator();
+    alarmOsc.type = 'sawtooth';
+    alarmOsc.frequency.setValueAtTime(180.0, audioCtx.currentTime); // synthetic alarm harmonic
+
+    alarmGain = audioCtx.createGain();
+    alarmGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(450, audioCtx.currentTime);
+
+    alarmOsc.connect(filter);
+    filter.connect(alarmGain);
+    alarmGain.connect(audioAnalyser);
+
+    audioAnalyser.connect(audioCtx.destination);
+
+    baseOsc.start();
+    alarmOsc.start();
+
+    audioEnabled = true;
+    const btn = document.getElementById("audio-toggle");
+    btn.innerText = "Beacon Active";
+    btn.classList.add("enabled");
+  } catch(e) {
+    console.error("Web Audio initialization error:", e);
+  }
+}
+
+function handleAudioSynthesis(isBreached, masterMaxMetric) {
+  if (!audioEnabled || !audioCtx) return;
+  const now = audioCtx.currentTime;
+
+  if (isBreached) {
+    baseGain.gain.setTargetAtTime(0.02, now, 0.1);
+    alarmOsc.frequency.setTargetAtTime(180 + (masterMaxMetric * 160), now, 0.06);
+    alarmGain.gain.setTargetAtTime(Math.min(0.09, (masterMaxMetric - SEMANTIC_CLAMP) * 0.22), now, 0.08);
+  } else {
+    baseOsc.frequency.setTargetAtTime(60.0 + (masterMaxMetric * 18), now, 0.12);
+    baseGain.gain.setTargetAtTime(0.07, now, 0.2);
+    alarmGain.gain.setTargetAtTime(0.0, now, 0.1);
+  }
+}
+
+function drawFrequencyScope() {
+  const w = cvFrequency.width, h = cvFrequency.height;
+  ctxFrequency.fillStyle = "#000";
+  ctxFrequency.fillRect(0, 0, w, h);
+
+  if (!audioEnabled || !audioAnalyser) return;
+
+  audioAnalyser.getByteTimeDomainData(audioDataArray);
+
+  const breached = D_phase > SEMANTIC_CLAMP || D_harmonic > SEMANTIC_CLAMP || D_impedance > SEMANTIC_CLAMP;
+  ctxFrequency.strokeStyle = breached ? "var(--danger)" : "var(--accent)";
+  ctxFrequency.lineWidth = 1.5;
+  ctxFrequency.beginPath();
+
+  const sliceWidth = w / audioBufferLength;
+  let x = 0;
+
+  for (let i = 0; i < audioBufferLength; i++) {
+    const v = audioDataArray[i] / 128.0;
+    const y = (v * h) / 2;
+    if (i === 0) ctxFrequency.moveTo(x, y);
+    else ctxFrequency.lineTo(x, y);
+    x += sliceWidth;
+  }
+  ctxFrequency.stroke();
+}
+
+// ================================
+// Synchrophasor Phase Radar Engine
+// ================================
+const cvRadar = document.getElementById("cv-radar");
+const ctxRadar = cvRadar.getContext("2d");
+let radarSweepAngle = 0;
+
+function drawRadarScope(pS, pR, pO, w, h) {
+  ctxRadar.fillStyle = "#000";
+  ctxRadar.fillRect(0, 0, w, h);
+
+  const cx = w / 2, cy = h / 2, r = Math.min(cx, cy) * 0.85;
+
+  ctxRadar.strokeStyle = "rgba(0, 229, 255, 0.18)";
+  ctxRadar.lineWidth = 1;
+  ctxRadar.beginPath();
+  ctxRadar.arc(cx, cy, r, 0, Math.PI * 2);
+  ctxRadar.arc(cx, cy, r * 0.6, 0, Math.PI * 2);
+  ctxRadar.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
+  ctxRadar.stroke();
+
+  ctxRadar.beginPath();
+  ctxRadar.moveTo(cx - r, cy);
+  ctxRadar.lineTo(cx + r, cy);
+  ctxRadar.moveTo(cx, cy - r);
+  ctxRadar.lineTo(cx, cy + r);
+  ctxRadar.stroke();
+
+  radarSweepAngle = (radarSweepAngle + 0.02) % (Math.PI * 2);
+  ctxRadar.strokeStyle = "rgba(0, 229, 255, 0.35)";
+  ctxRadar.lineWidth = 1.5;
+  ctxRadar.beginPath();
+  ctxRadar.moveTo(cx, cy);
+  ctxRadar.lineTo(cx + Math.cos(radarSweepAngle) * r, cy + Math.sin(radarSweepAngle) * r);
+  ctxRadar.stroke();
+
+  const targets = [
+    { pt: pS, col: "#00e5ff", lbl: "S" },
+    { pt: pR, col: "#00ff88", lbl: "R" },
+    { pt: pO, col: "#ff3366", lbl: "σ" }
+  ];
+
+  targets.forEach(t => {
+    let tx = cx + (t.pt.x - (cv3d.width / 2)) * 0.7;
+    let ty = cy + (t.pt.y - (cv3d.height / 2)) * 0.7;
+    ctxRadar.fillStyle = t.col;
+    ctxRadar.beginPath();
+    ctxRadar.arc(tx, ty, 4, 0, Math.PI * 2);
+    ctxRadar.fill();
+    ctxRadar.fillStyle = "#8a99ad";
+    ctxRadar.font = "8px monospace";
+    ctxRadar.fillText(t.lbl, tx + 6, ty + 3);
+  });
+}
+
+
+
+// ================================
+// Interactive 3D Spatial Projection Engine
+// ================================
+const cv3d = document.getElementById("cv-3d");
+const ctx3d = cv3d.getContext("2d");
+
+let angleX = 0.45, angleY = 0.55, zoomLevel = 0.38;
+let isDragging = false, previousMouseX = 0, previousMouseY = 0, autoRotate = true;
+let particleTrail = [];
+const MAX_TRAIL_PARTICLES = 120;
+let freezeGeometry = false;
+
+function project3D(x, y, z, width, height) {
+  let cosY = Math.cos(angleY), sinY = Math.sin(angleY);
+  let x1 = x * cosY - z * sinY, z1 = x * sinY + z * cosY;
+
+  let cosX = Math.cos(angleX), sinX = Math.sin(angleX);
+  let y2 = y * cosX - z1 * sinX, z2 = y * sinX + z1 * cosX;
+
+  const scaleFactor = 230 / (230 + z2);
+  return {
+    x: (width / 2) + x1 * scaleFactor,
+    y: (height / 2) + y2 * scaleFactor,
+    depth: z2
+  };
+}
+
+function update3DProjection() {
+  const w = cv3d.width, h = cv3d.height;
+  ctx3d.fillStyle = "#000";
+  ctx3d.fillRect(0, 0, w, h);
+
+  if (autoRotate && !freezeGeometry) {
+    angleY += 0.003;
+    angleX = 0.35 + Math.sin(performance.now() * 0.00025) * 0.09;
+  }
+
+  const scale = Math.min(w, h) * zoomLevel;
+  const breached = D_phase > SEMANTIC_CLAMP || D_harmonic > SEMANTIC_CLAMP || D_impedance > SEMANTIC_CLAMP;
+
+  ctx3d.strokeStyle = "rgba(30, 38, 56, 0.4)";
+  ctx3d.lineWidth = 1;
+  const bounds = [-1, 1];
+  for (let x of bounds) {
+    for (let y of bounds) {
+      ctx3d.beginPath();
+      for (let i = 0; i <= 5; i++) {
+        let z = -1 + (i * 0.4);
+        let p = project3D(x * scale, y * scale, z * scale, w, h);
+        if (i === 0) ctx3d.moveTo(p.x, p.y);
+        else ctx3d.lineTo(p.x, p.y);
+      }
+      ctx3d.stroke();
+    }
+  }
+
+  const t = performance.now() * 0.0015;
+  const radius = 10 + (D_harmonic * 80);
+
+  const S = {
+    x: Math.sin(t) * radius,
+    y: Math.cos(t * 0.8) * (radius * 0.5),
+    z: Math.cos(t) * radius
+  };
+  const R = {
+    x: Math.sin(t + 1.3) * (radius * 0.9),
+    y: Math.sin(t * 0.5) * (radius * 0.7),
+    z: Math.cos(t + 0.6) * (radius * 0.8)
+  };
+  const O = {
+    x: Math.cos(t * 1.2) * (radius * 0.85),
+    y: Math.sin(t + 1.5) * (radius * 0.6),
+    z: Math.sin(t * 0.9) * (radius * 0.95)
+  };
+
+  if (!freezeGeometry && performance.now() % 2 < 1.3) {
+    particleTrail.push({ x: S.x, y: S.y, z: S.z, color: "rgba(0, 229, 255, ", life: 1.0 });
+    particleTrail.push({ x: R.x, y: R.y, z: R.z, color: "rgba(0, 255, 136, ", life: 1.0 });
+  }
+
+  particleTrail.forEach((p, idx) => {
+    p.life -= 0.02;
+    if (p.life <= 0) { particleTrail.splice(idx, 1); return; }
+    const proj = project3D(p.x, p.y, p.z, w, h);
+    if (proj.x >= 0 && proj.x <= w && proj.y >= 0 && proj.y <= h) {
+      ctx3d.fillStyle = p.color + (breached ? p.life * 0.4 : p.life * 0.2) + ")";
+      ctx3d.fillRect(proj.x, proj.y, 2, 2);
+    }
+  });
+  if (particleTrail.length > MAX_TRAIL_PARTICLES) particleTrail.shift();
+
+  const pS = project3D(S.x, S.y, S.z, w, h);
+  const pR = project3D(R.x, R.y, R.z, w, h);
+  const pO = project3D(O.x, O.y, O.z, w, h);
+
+  ctx3d.lineWidth = 1.5;
+  ctx3d.strokeStyle = breached ? "rgba(255, 51, 102, 0.6)" : "rgba(0, 229, 255, 0.4)";
+  ctx3d.beginPath();
+  ctx3d.moveTo(pS.x, pS.y);
+  ctx3d.lineTo(pR.x, pR.y);
+  ctx3d.lineTo(pO.x, pO.y);
+  ctx3d.closePath();
+  ctx3d.stroke();
+
+  const nodes = [
+    { p: pS, color: "#00e5ff", lbl: "S" },
+    { p: pR, color: "#00ff88", lbl: "R" },
+    { p: pO, color: "#ff3366", lbl: "σ" }
+  ];
+  nodes.forEach(n => {
+    ctx3d.fillStyle = n.color;
+    ctx3d.beginPath();
+    ctx3d.arc(n.p.x, n.p.y, 5, 0, Math.PI * 2);
+    ctx3d.fill();
+    ctx3d.fillStyle = "#8a99ad";
+    ctx3d.font = "9px monospace";
+    ctx3d.fillText(n.lbl, n.p.x + 6, n.p.y + 2);
+  });
+
+  drawRadarScope(pS, pR, pO, cvRadar.width, cvRadar.height);
+
+  // Update triad snapshot (synthetic angles)
+  const angleS = (Math.atan2(S.y, S.x) + Math.PI * 2) % (Math.PI * 2);
+  const angleR = (Math.atan2(R.y, R.x) + Math.PI * 2) % (Math.PI * 2);
+  const angleO = (Math.atan2(O.y, O.x) + Math.PI * 2) % (Math.PI * 2);
+
+  document.getElementById("triad-S").innerText = angleS.toFixed(3);
+  document.getElementById("triad-R").innerText = angleR.toFixed(3);
+  document.getElementById("triad-O").innerText = angleO.toFixed(3);
+
+  const spreadSR = Math.abs(angleS - angleR);
+  const spreadRO = Math.abs(angleR - angleO);
+  const spreadSO = Math.abs(angleS - angleO);
+
+  document.getElementById("triad-spread-SR").innerText = spreadSR.toFixed(3);
+  document.getElementById("triad-spread-RO").innerText = spreadRO.toFixed(3);
+  document.getElementById("triad-spread-SO").innerText = spreadSO.toFixed(3);
+}
+
+(function () {
+  const exportBtn = document.getElementById('export-json');
+  if (!exportBtn) {
+    console.log("Export button not found");
+    return;
+  }
+
+  exportBtn.addEventListener('click', () => {
+    // Build snapshot inline (no external function call)
+    const snapshot = {
+      type: "DSLO Export Surface",
+      timestamp: new Date().toLocaleString(),
+      nodeIdentifier: "SM-DSLO-90310",
+      masterInvariant: "S = R = σ",
+      external_links: {
+        root_of_modern_tech: "https://zenodo.org/records/22736043",
+        semantic_substrate: "https://www.tnopsi.com",
+        millennium_substrate: "https://www.tnopsi.com/sm-dslo-90080"
+      },
+
+    };
+
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], {
+      type: 'application/json'
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dslo_snapshot_${Date.now()}.json`;
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
+  });
+})();
+
+
+
+cv3d.addEventListener("mousedown", (e) => {
+  isDragging = true;
+  autoRotate = false;
+  previousMouseX = e.clientX;
+  previousMouseY = e.clientY;
+});
+window.addEventListener("mouseup", () => {
+  isDragging = false;
+  clearTimeout(window.rotateTimeout);
+  window.rotateTimeout = setTimeout(() => { if (!freezeGeometry) autoRotate = true; }, 4000);
+});
+cv3d.addEventListener("mousemove", (e) => {
+  if (!isDragging) return;
+  angleY += (e.clientX - previousMouseX) * 0.01;
+  angleX += (e.clientY - previousMouseY) * 0.01;
+  angleX = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, angleX));
+  previousMouseX = e.clientX;
+  previousMouseY = e.clientY;
+});
+cv3d.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  zoomLevel = Math.max(0.15, Math.min(0.65, zoomLevel + (e.deltaY < 0 ? 0.02 : -0.02)));
+}, { passive: false });
+
+// ================================
+// Substrate Runtime Engine Mapping
+// ================================
+let D_phase = 0, D_harmonic = 0, D_impedance = 0, MODE = "PI_COGNITION";
+const SEMANTIC_CLAMP = 0.6;
+let currentScenario = "idle";
+
+function applyAlignment(val, clamp = SEMANTIC_CLAMP) {
+  return val > clamp ? clamp + (val - clamp) * 0.05 : val;
+}
+
+function resizeCanvas(c) {
+  if (c.width !== c.clientWidth || c.height !== c.clientHeight) {
+    c.width = c.clientWidth;
+    c.height = c.clientHeight;
+  }
+}
+
+function scenarioOffsets() {
+  switch (currentScenario) {
+    case "renewable-surge":
+      return { phase: 0.18, harmonic: 0.22, impedance: 0.12 };
+    case "industrial-spike":
+      return { phase: 0.26, harmonic: 0.30, impedance: 0.20 };
+    case "fault":
+      return { phase: 0.40, harmonic: 0.45, impedance: 0.35 };
+    default:
+      return { phase: 0.08, harmonic: 0.10, impedance: 0.06 };
+  }
+}
+
+function updateTransponderTable() {
+  const tbody = document.getElementById("transponder-tbody");
+  const offsets = scenarioOffsets();
+
+  const nodes = [
+    { id: "SUB-NORTH-01", bus: "Bus_A", phase: D_phase * (0.85 + offsets.phase), drift: D_harmonic * (0.90 + offsets.harmonic), imp: D_impedance * (1.00 + offsets.impedance) },
+    { id: "SUB-CENTRAL-04", bus: "Bus_B", phase: D_phase * (1.05 + offsets.phase), drift: D_harmonic * (0.78 + offsets.harmonic), imp: D_impedance * (0.88 + offsets.impedance) },
+    { id: "SUB-SOUTH-07", bus: "Bus_C", phase: D_phase * (0.95 + offsets.phase), drift: D_harmonic * (1.10 + offsets.harmonic), imp: D_impedance * (1.02 + offsets.impedance) }
+  ];
+
+  tbody.innerHTML = "";
+  nodes.forEach(n => {
+    const isBreached = n.phase > SEMANTIC_CLAMP || n.drift > SEMANTIC_CLAMP || n.imp > SEMANTIC_CLAMP;
+    const isWarn = !isBreached && (n.phase > SEMANTIC_CLAMP * 0.8 || n.drift > SEMANTIC_CLAMP * 0.8 || n.imp > SEMANTIC_CLAMP * 0.8);
+    const tr = document.createElement("tr");
+    if (isBreached) tr.className = "alert-row";
+    else if (isWarn) tr.className = "warn-row";
+
+    tr.innerHTML = `
+      <td>${n.id}</td>
+      <td>${n.bus}</td>
+      <td>${n.phase.toFixed(3)}</td>
+      <td>${n.drift.toFixed(3)}</td>
+      <td>${n.imp.toFixed(3)}</td>
+      <td>${isBreached ? "BREACH" : (isWarn ? "WATCH" : "NOMINAL")}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateGridRuntime() {
+  [cvFrequency, cvRadar, cv3d].forEach(resizeCanvas);
+
+  const tPhase = parseFloat(document.getElementById("inj-phase").value);
+  const tHarmonic = parseFloat(document.getElementById("inj-harmonic").value);
+  const tImpedance = parseFloat(document.getElementById("inj-impedance").value);
+
+  const offsets = scenarioOffsets();
+
+  const targetPhase = tPhase + offsets.phase;
+  const targetHarmonic = tHarmonic + offsets.harmonic;
+  const targetImpedance = tImpedance + offsets.impedance;
+
+  if (MODE === "CLASSICAL") {
+    D_phase += (targetPhase - D_phase) * 0.12 + (Math.random() - 0.5) * 0.01;
+    D_harmonic += (targetHarmonic - D_harmonic) * 0.12 + (Math.random() - 0.5) * 0.01;
+    D_impedance += (targetImpedance - D_impedance) * 0.12 + (Math.random() - 0.5) * 0.01;
+  } else {
+    D_phase += (applyAlignment(targetPhase) - D_phase) * 0.12;
+    D_harmonic += (applyAlignment(targetHarmonic) - D_harmonic) * 0.12;
+    D_impedance += (applyAlignment(targetImpedance) - D_impedance) * 0.12;
+  }
+
+  D_phase = Math.max(0, Math.min(1.2, D_phase));
+  D_harmonic = Math.max(0, Math.min(1.2, D_harmonic));
+  D_impedance = Math.max(0, Math.min(1.2, D_impedance));
+
+  document.getElementById("m-phase").innerText = D_phase.toFixed(4);
+  document.getElementById("m-harmonic").innerText = D_harmonic.toFixed(4);
+  document.getElementById("m-impedance").innerText = D_impedance.toFixed(4);
+
+  const breached = D_phase > SEMANTIC_CLAMP || D_harmonic > SEMANTIC_CLAMP || D_impedance > SEMANTIC_CLAMP;
+  const nearClamp = !breached && (D_phase > SEMANTIC_CLAMP * 0.85 || D_harmonic > SEMANTIC_CLAMP * 0.85 || D_impedance > SEMANTIC_CLAMP * 0.85);
+
+  const status = document.getElementById("cog-status");
+  status.className = breached ? "status-badge breach" : (nearClamp ? "status-badge warn" : "status-badge");
+  status.innerText = breached ? "S = R = σ (BREACH)" : (nearClamp ? "S = R = σ (WATCH)" : "S = R = σ (NOMINAL)");
+
+  const fb = document.getElementById("fb-invariant");
+  fb.innerText = breached ? "BREACH" : (nearClamp ? "WATCH" : "NOMINAL");
+  fb.style.color = breached ? "var(--danger)" : (nearClamp ? "var(--amber)" : "var(--green)");
+
+  const rootEl = document.documentElement;
+  rootEl.style.setProperty('--panel-border', breached ? 'rgba(255, 51, 102, 0.4)' : '#1e2638');
+  rootEl.style.setProperty('--panel-glow', breached ? 'rgba(255, 51, 102, 0.08)' : 'rgba(0, 229, 255, 0.04)');
+
+  update3DProjection();
+  updateTransponderTable();
+  drawFrequencyScope();
+  handleAudioSynthesis(breached, Math.max(D_phase, D_harmonic, D_impedance));
+
+  document.getElementById("jsonld-out").innerText = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    "dslo:nodeIdentifier": "SM-DSLO-90310",
+    "dslo:masterInvariant": "S = R = σ",
+    "dslo:gridMetrics": {
+      "phaseDisplacementMetric": parseFloat(D_phase.toFixed(4)),
+      "harmonicShearMetric": parseFloat(D_harmonic.toFixed(4)),
+      "impedanceEnvelopeMetric": parseFloat(D_impedance.toFixed(4))
+    },
+    "dslo:operatorMode": MODE,
+    "dslo:scenarioProfile": currentScenario,
+    "dslo:systemStatus": breached ? "CASCADE_RISK" : (nearClamp ? "ELEVATED" : "SYNCHRONIZED")
+  }, null, 2);
+
+  document.getElementById("diag-out").innerText =
+    "Runtime tick: " + performance.now().toFixed(0) +
+    "\nMODE: " + MODE +
+    "\nScenario: " + currentScenario +
+    "\nPhase metric: " + D_phase.toFixed(4) +
+    "\nHarmonic metric: " + D_harmonic.toFixed(4) +
+    "\nImpedance metric: " + D_impedance.toFixed(4);
+
+  requestAnimationFrame(updateGridRuntime);
+}
+
+// ================================
+// UI Wiring
+// ================================
+window.addEventListener("DOMContentLoaded", () => {
+  const btnPi = document.getElementById("mode-pi");
+  const btnClassical = document.getElementById("mode-classical");
+  const btnFreeze = document.getElementById("mode-freeze");
+  const audioToggle = document.getElementById("audio-toggle");
+  const modeBadge = document.getElementById("mode-badge");
+  const scenarioBadge = document.getElementById("scenario-badge");
+
+  btnPi.onclick = () => {
+    MODE = "PI_COGNITION";
+    btnPi.classList.add("active");
+    btnClassical.classList.remove("active");
+    modeBadge.innerText = "Mode: Π_coherence";
+    modeBadge.className = "status-badge warn";
+  };
+  btnClassical.onclick = () => {
+    MODE = "CLASSICAL";
+    btnClassical.classList.add("active");
+    btnPi.classList.remove("active");
+    modeBadge.innerText = "Mode: Legacy loop";
+    modeBadge.className = "status-badge";
+  };
+  btnFreeze.onclick = () => {
+    freezeGeometry = !freezeGeometry;
+    btnFreeze.classList.toggle("active", freezeGeometry);
+    btnFreeze.innerText = freezeGeometry ? "Freeze geometry (ON)" : "Freeze geometry snapshot";
+  };
+
+  audioToggle.onclick = () => {
+    if (!audioCtx) {
+      initAudioEngine();
+    } else if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+      audioToggle.innerText = "Beacon Active";
+      audioToggle.classList.add("enabled");
+      audioToggle.classList.remove("warn");
+    } else if (audioCtx.state === 'running') {
+      audioCtx.suspend();
+      audioToggle.innerText = "Beacon Muted";
+      audioToggle.classList.remove("enabled");
+      audioToggle.classList.add("warn");
+    }
+  };
+
+  const scenarioButtons = document.querySelectorAll(".mode-btn.scenario");
+  scenarioButtons.forEach(btn => {
+    btn.onclick = () => {
+      scenarioButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentScenario = btn.getAttribute("data-scenario");
+      scenarioBadge.innerText = "Scenario: " + btn.innerText;
+    };
+  });
+
+  const sliders = [
+    { id: "inj-phase", valId: "val-phase" },
+    { id: "inj-harmonic", valId: "val-harmonic" },
+    { id: "inj-impedance", valId: "val-impedance" }
+  ];
+  sliders.forEach(s => {
+    const el = document.getElementById(s.id);
+    const valEl = document.getElementById(s.valId);
+    el.addEventListener("input", () => {
+      valEl.innerText = parseFloat(el.value).toFixed(2);
+    });
+  });
+
+  updateGridRuntime();
+});
+</script>
+</body>
+</html>
 
