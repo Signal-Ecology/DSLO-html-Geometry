@@ -1,1 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SM-DSLO-80058: Sovereign Education Coherence Surface</title>
+<style>
+:root {
+  --bg: #05070a;
+  --card: #10141d;
+  --accent: #00e5ff;
+  --accent-soft: rgba(0, 229, 255, 0.18);
+  --danger: #ff3366;
+  --danger-soft: rgba(255, 51, 102, 0.18);
+  --text: #e0e6ed;
+  --subtext: #8a99ad;
+  --border: #1e2638;
+  --green: #00ff88;
+  --amber: #ffcc33;
+  --panel-glow: rgba(0, 229, 255, 0.04);
+  --panel-border: var(--border);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
+body { background: var(--bg); color: var(--text); padding: 16px; font-size: 13px; }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  transition: border-color 0.4s ease;
+}
+h1 { font-size: 16px; color: var(--accent); letter-spacing: 1px; }
+.subhead { font-size: 11px; color: var(--subtext); margin-top: 2px; }
+.tagline { font-size: 9px; color: var(--subtext); margin-top: 2px; }
+.badge-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.status-badge {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid var(--green);
+  color: var(--green);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+.status-badge.breach {
+  background: rgba(255, 51, 102, 0.1);
+  border-color: var(--danger);
+  color: var(--danger);
+  animation: alert-pulse 1.5s infinite alternate;
+}
+.status-badge.warn {
+  background: rgba(255, 204, 51, 0.08);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.grid-root {
+  display: grid;
+  grid-template-columns: 1.15fr 1.1fr 1.35fr;
+  gap: 12px;
+}
+.panel {
+  background: var(--card);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: inset 0 0 20px var(--panel-glow);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s ease;
+}
+.surface-card {
+  background: rgba(16, 20, 29, 0.7);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  transition: border-color 0.4s ease, background 0.4s ease;
+}
+.surface-title {
+  font-size: 10px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+.surface-title span.tag {
+  font-size: 9px;
+  color: var(--subtext);
+  text-transform: none;
+  margin-left: 4px;
+}
+.text-row {
+  font-size: 10px;
+  color: var(--subtext);
+  margin: 2px 0;
+}
+.text-row b { color: var(--text); }
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.mode-btn {
+  background: #10141d;
+  border: 1px solid var(--panel-border);
+  color: var(--accent);
+  padding: 6px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+.mode-btn:hover { background: #0d1118; border-color: var(--accent); }
+.mode-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.mode-btn.scenario {
+  color: var(--subtext);
+  border-style: dashed;
+}
+.mode-btn.scenario.active {
+  color: var(--amber);
+  border-color: var(--amber);
+  background: rgba(255, 204, 51, 0.08);
+}
+.audio-btn {
+  width: 100%;
+  background: #15202b;
+  border: 1px solid #22303c;
+  color: var(--subtext);
+  padding: 6px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: bold;
+  margin-top: 6px;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+.audio-btn.enabled {
+  background: rgba(0, 255, 136, 0.15);
+  border-color: var(--green);
+  color: var(--green);
+}
+.audio-btn.warn {
+  background: rgba(255, 204, 51, 0.12);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+canvas {
+  width: 100%;
+  height: 120px;
+  background: #000;
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+  display: block;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+canvas.projection-3d { height: 210px; cursor: grab; }
+canvas.radar-scope { height: 160px; }
+canvas.learning-scope { height: 80px; }
+canvas.lattice-strip { height: 90px; background: #050505; }
+canvas.projection-3d:active { cursor: grabbing; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  margin-top: 4px;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 4px 6px;
+  text-align: left;
+}
+th {
+  background: #0b1118;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+tr.alert-row {
+  color: var(--danger);
+  background: rgba(255, 51, 102, 0.05);
+}
+tr.warn-row {
+  color: var(--amber);
+  background: rgba(255, 204, 51, 0.05);
+}
+pre {
+  font-size: 10px;
+  color: var(--green);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 140px;
+  overflow-y: auto;
+  background: #05070a;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+}
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--subtext);
+  margin: 2px 0;
+}
+.metric-row span:last-child {
+  color: var(--text);
+  font-weight: bold;
+}
+.slider-group {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.slider-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.slider-container label {
+  font-size: 9px;
+  color: var(--subtext);
+  width: 130px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.slider-container input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent);
+  cursor: pointer;
+  height: 4px;
+}
+.slider-container span.value {
+  font-size: 9px;
+  color: var(--text);
+  width: 40px;
+  text-align: right;
+}
+.small-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+@keyframes alert-pulse {
+  from { box-shadow: 0 0 4px rgba(255, 51, 102, 0.2); }
+  to { box-shadow: 0 0 12px rgba(255, 51, 102, 0.6); }
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>SM-DSLO-80058: Sovereign Education Coherence Surface</h1>
+    <div class="subhead">
+      Node: SM-DSLO-80058 · Domain: Synthetic Learning Stability Manifold · Root: SM-DSLO-90060 · Invariant: S = R = σ · 10.5281/zenodo.22648339
+    </div>
+    <div class="tagline">
+      Synthetic geometry only · No student data · Non-operational · Not for assessment or policy decisions.
+    </div>
+  </div>
+  <div>
+    <div class="badge-row">
+      <div id="cog-status" class="status-badge">S = R = σ (NOMINAL)</div>
+      <div id="mode-badge" class="status-badge warn">Mode: Π_coherence</div>
+      <div id="scenario-badge" class="status-badge">Scenario: Baseline Classroom</div>
+    </div>
+  </div>
+</header>
+
+<div class="grid-root">
+  <!-- LEFT PANEL: Operator & Learning/Lattice -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">LEARNING ALIGNMENT OPERATOR <span class="tag">(S–R–σ Triad)</span></div>
+      <div class="text-row">
+        <b>S:</b> Scheduled curriculum vector (idealized learning trajectory)<br>
+        <b>R:</b> Reality engagement vector (synthetic learner state)<br>
+        <b>σ:</b> Observer stabilization vector (synthetic instructional correction manifold)
+      </div>
+      <div class="btn-row">
+        <button class="mode-btn active" id="mode-pi">Π_coherence (Triad locked)</button>
+        <button class="mode-btn" id="mode-classical">Legacy instruction loop</button>
+        <button class="mode-btn" id="mode-freeze">Freeze geometry snapshot</button>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">SCENARIO PROFILE SELECTOR <span class="tag">(Synthetic)</span></div>
+      <div class="btn-row">
+        <button class="mode-btn scenario active" data-scenario="baseline" id="scn-baseline">Baseline Classroom</button>
+        <button class="mode-btn scenario" data-scenario="highload" id="scn-highload">High Cognitive Load</button>
+        <button class="mode-btn scenario" data-scenario="fragmented" id="scn-fragmented">Fragmented Attention</button>
+        <button class="mode-btn scenario" data-scenario="exam" id="scn-exam">Synthetic Exam Event</button>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">SYNTHETIC LEARNING RHYTHM SCOPE</div>
+      <canvas id="cv-learning" class="learning-scope"></canvas>
+      <button class="audio-btn" id="audio-toggle">Beacon Muted (Click to Initialize)</button>
+      <div class="text-row">
+        Synthetic engagement rhythm; modulation increases with misalignment between curriculum and learner state.
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">CONCEPT LATTICE STRIP VISUALIZER <span class="tag">New Education Signal</span></div>
+      <canvas id="cv-lattice" class="lattice-strip"></canvas>
+      <div class="text-row">
+        Scrolling concept lattice bands; node density and connectivity respond to progression drift and attention fragmentation.
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER PANEL: 3D Tensor & Distortions -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">3D LEARNING STABILITY TENSOR (S–R–σ)</div>
+      <div class="text-row" style="color: var(--accent); font-size:9px;">
+        Drag to rotate · Scroll to zoom · Triad geometry responds to synthetic learning distortions and scenario presets.
+      </div>
+      <canvas id="cv-3d" class="projection-3d"></canvas>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">LEARNING DISTORTION INJECTION</div>
+      <div class="slider-group">
+        <div class="slider-container">
+          <label title="Mismatch between planned curriculum and learner progression">Δ_progression_drift</label>
+          <input type="range" id="inj-drift" min="0" max="1.2" step="0.01" value="0.10">
+          <span class="value" id="val-drift">0.10</span>
+        </div>
+        <div class="slider-container">
+          <label title="Cognitive load / task complexity">T_cognitive_load</label>
+          <input type="range" id="inj-load" min="0" max="1.2" step="0.01" value="0.16">
+          <span class="value" id="val-load">0.16</span>
+        </div>
+        <div class="slider-container">
+          <label title="Attention fragmentation / signal noise">SCMA_attention_noise</label>
+          <input type="range" id="inj-noise" min="0" max="1.2" step="0.01" value="0.08">
+          <span class="value" id="val-noise">0.08</span>
+        </div>
+      </div>
+      <div class="text-row">
+        Sliders inject synthetic distortions into the learning manifold; Π_coherence clamps excursions above the invariant threshold.
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">S–R–σ TRIAD SNAPSHOT</div>
+      <div class="small-grid">
+        <div>
+          <div class="metric-row"><span>S: Scheduled state angle</span><span id="triad-S">N/A</span></div>
+          <div class="metric-row"><span>R: Reality state angle</span><span id="triad-R">N/A</span></div>
+          <div class="metric-row"><span>σ: Stabilization angle</span><span id="triad-O">N/A</span></div>
+        </div>
+        <div>
+          <div class="metric-row"><span>Triad spread |S−R|</span><span id="triad-spread-SR">N/A</span></div>
+          <div class="metric-row"><span>Triad spread |R−σ|</span><span id="triad-spread-RO">N/A</span></div>
+          <div class="metric-row"><span>Triad spread |S−σ|</span><span id="triad-spread-SO">N/A</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL: Synthetic Learners, Metrics, JSON-LD -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">SYNTHETIC LEARNER COHERENCE REGISTRY</div>
+      <div style="max-height: 120px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Learner ID</th>
+              <th>Profile</th>
+              <th>Δ_drift</th>
+              <th>Load</th>
+              <th>Noise</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="learner-tbody">
+            <!-- Populated by runtime -->
+          </tbody>
+        </table>
+      </div>
+      <div class="text-row">
+        Synthetic registry of learner-like entities; status reflects current distortion envelope relative to invariant clamp.
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">UNIFIED LEARNING COHERENCE METRICS</div>
+      <div class="metric-row"><span>Progression drift metric</span><span id="m-drift">N/A</span></div>
+      <div class="metric-row"><span>Cognitive load metric</span><span id="m-load">N/A</span></div>
+      <div class="metric-row"><span>Attention noise metric</span><span id="m-noise">N/A</span></div>
+      <div class="metric-row" style="border-top: 1px solid #1e2638; padding-top: 2px;">
+        <span>System invariant state</span><span id="fb-invariant">NOMINAL</span>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">JSON-LD EDUCATION MANIFEST (.schema)</div>
+      <pre id="jsonld-out">Initializing synthetic education coherence manifest...</pre>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">RUNTIME DIAGNOSTIC TRACE</div>
+      <pre id="diag-out">Runtime trace will appear here as the manifold evolves.</pre>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================
+// Web Audio Context Synthesizer Core (Learning Rhythm)
+// ================================
+let audioCtx = null, baseOsc = null, modOsc = null, baseGain = null, modGain = null, audioAnalyser = null;
+let audioBufferLength = 0, audioDataArray = null, audioEnabled = false;
+
+const cvLearning = document.getElementById("cv-learning");
+const ctxLearning = cvLearning.getContext("2d");
+
+function initAudioEngine() {
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioAnalyser = audioCtx.createAnalyser();
+    audioAnalyser.fftSize = 512;
+    audioBufferLength = audioAnalyser.frequencyBinCount;
+    audioDataArray = new Uint8Array(audioBufferLength);
+
+    baseOsc = audioCtx.createOscillator();
+    baseOsc.type = 'sine';
+    baseOsc.frequency.setValueAtTime(0.8, audioCtx.currentTime); // baseline engagement rhythm
+
+    baseGain = audioCtx.createGain();
+    baseGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+
+    baseOsc.connect(baseGain);
+    baseGain.connect(audioAnalyser);
+
+    modOsc = audioCtx.createOscillator();
+    modOsc.type = 'triangle';
+    modOsc.frequency.setValueAtTime(0.18, audioCtx.currentTime); // modulation for cognitive load
+
+    modGain = audioCtx.createGain();
+    modGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(250, audioCtx.currentTime);
+
+    modOsc.connect(filter);
+    filter.connect(modGain);
+    modGain.connect(audioAnalyser);
+
+    audioAnalyser.connect(audioCtx.destination);
+
+    baseOsc.start();
+    modOsc.start();
+
+    audioEnabled = true;
+    const btn = document.getElementById("audio-toggle");
+    btn.innerText = "Beacon Active";
+    btn.classList.add("enabled");
+  } catch(e) {
+    console.error("Web Audio initialization error:", e);
+  }
+}
+
+function handleAudioSynthesis(isBreached, masterMaxMetric) {
+  if (!audioEnabled || !audioCtx) return;
+  const now = audioCtx.currentTime;
+
+  if (isBreached) {
+    baseGain.gain.setTargetAtTime(0.08, now, 0.1);
+    modGain.gain.setTargetAtTime(0.07, now, 0.1);
+    baseOsc.frequency.setTargetAtTime(0.8 + masterMaxMetric * 1.5, now, 0.08);
+    modOsc.frequency.setTargetAtTime(0.18 + masterMaxMetric * 0.6, now, 0.08);
+  } else {
+    baseGain.gain.setTargetAtTime(0.05, now, 0.2);
+    modGain.gain.setTargetAtTime(0.03, now, 0.2);
+    baseOsc.frequency.setTargetAtTime(0.8 + masterMaxMetric * 0.7, now, 0.1);
+    modOsc.frequency.setTargetAtTime(0.18 + masterMaxMetric * 0.3, now, 0.1);
+  }
+}
+
+function drawLearningScope() {
+  const w = cvLearning.width, h = cvLearning.height;
+  ctxLearning.fillStyle = "#000";
+  ctxLearning.fillRect(0, 0, w, h);
+
+  if (!audioEnabled || !audioAnalyser) return;
+
+  audioAnalyser.getByteTimeDomainData(audioDataArray);
+
+  const breached = D_drift > SEMANTIC_CLAMP || D_load > SEMANTIC_CLAMP || D_noise > SEMANTIC_CLAMP;
+  ctxLearning.strokeStyle = breached ? "var(--danger)" : "var(--accent)";
+  ctxLearning.lineWidth = 1.5;
+  ctxLearning.beginPath();
+
+  const sliceWidth = w / audioBufferLength;
+  let x = 0;
+
+  for (let i = 0; i < audioBufferLength; i++) {
+    const v = audioDataArray[i] / 128.0;
+    const y = (v * h) / 2;
+    if (i === 0) ctxLearning.moveTo(x, y);
+    else ctxLearning.lineTo(x, y);
+    x += sliceWidth;
+  }
+  ctxLearning.stroke();
+}
+
+// ================================
+// Concept Lattice Strip Visualizer
+// ================================
+const cvLattice = document.getElementById("cv-lattice");
+const ctxLattice = cvLattice.getContext("2d");
+let latticeOffset = 0;
+
+function drawLatticeStrip() {
+  const w = cvLattice.width, h = cvLattice.height;
+  ctxLattice.fillStyle = "#050505";
+  ctxLattice.fillRect(0, 0, w, h);
+
+  // grid
+  ctxLattice.strokeStyle = "rgba(60, 60, 60, 0.6)";
+  ctxLattice.lineWidth = 0.5;
+  const step = 10;
+  for (let x = 0; x < w; x += step) {
+    ctxLattice.beginPath();
+    ctxLattice.moveTo(x, 0);
+    ctxLattice.lineTo(x, h);
+    ctxLattice.stroke();
+  }
+  for (let y = 0; y < h; y += step) {
+    ctxLattice.beginPath();
+    ctxLattice.moveTo(0, y);
+    ctxLattice.lineTo(w, y);
+    ctxLattice.stroke();
+  }
+
+  const driftFactor = D_drift;
+  const loadFactor = D_load;
+  const noiseFactor = D_noise;
+
+  latticeOffset = (latticeOffset + (2 + loadFactor * 4)) % w;
+
+  const bandCount = 3;
+  for (let band = 0; band < bandCount; band++) {
+    const baseY = h * (0.25 + band * 0.25);
+    const color = band === 1
+      ? (noiseFactor > SEMANTIC_CLAMP ? "var(--danger)" : "#00ff88")
+      : "#00e5ff";
+
+    ctxLattice.strokeStyle = color;
+    ctxLattice.lineWidth = 1.4;
+    ctxLattice.beginPath();
+
+    for (let x = 0; x < w; x++) {
+      const t = (x + latticeOffset + band * 40) * 0.02;
+      let y = baseY;
+
+      const progressionWave = Math.sin(t * (1.0 + driftFactor * 1.5)) * (6 + driftFactor * 12);
+      const loadWave = Math.cos(t * (0.6 + loadFactor)) * (4 + loadFactor * 10);
+      const noiseWave = Math.sin(t * 3.0) * noiseFactor * 10;
+
+      y += progressionWave + loadWave + noiseWave;
+
+      if (x === 0) ctxLattice.moveTo(x, y);
+      else ctxLattice.lineTo(x, y);
+    }
+    ctxLattice.stroke();
+
+    // concept nodes
+    const nodeCount = 12 + Math.floor(loadFactor * 10);
+    for (let i = 0; i < nodeCount; i++) {
+      const nx = (i / nodeCount) * w + (latticeOffset * 0.3) % w;
+      const ny = baseY + Math.sin(i * 0.6 + driftFactor * 2.0) * (8 + noiseFactor * 6);
+      ctxLattice.fillStyle = color;
+      ctxLattice.beginPath();
+      ctxLattice.arc(nx, ny, 2.2, 0, Math.PI * 2);
+      ctxLattice.fill();
+    }
+  }
+}
+
+// ================================
+// Interactive 3D Learning Tensor
+// ================================
+const cv3d = document.getElementById("cv-3d");
+const ctx3d = cv3d.getContext("2d");
+
+let angleX = 0.45, angleY = 0.55, zoomLevel = 0.38;
+let isDragging = false, previousMouseX = 0, previousMouseY = 0, autoRotate = true;
+let particleTrail = [];
+const MAX_TRAIL_PARTICLES = 120;
+let freezeGeometry = false;
+
+function project3D(x, y, z, width, height) {
+  let cosY = Math.cos(angleY), sinY = Math.sin(angleY);
+  let x1 = x * cosY - z * sinY, z1 = x * sinY + z * cosY;
+
+  let cosX = Math.cos(angleX), sinX = Math.sin(angleX);
+  let y2 = y * cosX - z1 * sinX, z2 = y * sinX + z1 * cosX;
+
+  const scaleFactor = 230 / (230 + z2);
+  return {
+    x: (width / 2) + x1 * scaleFactor,
+    y: (height / 2) + y2 * scaleFactor,
+    depth: z2
+  };
+}
+
+function update3DProjection() {
+  const w = cv3d.width, h = cv3d.height;
+  ctx3d.fillStyle = "#000";
+  ctx3d.fillRect(0, 0, w, h);
+
+  if (autoRotate && !freezeGeometry) {
+    angleY += 0.003;
+    angleX = 0.35 + Math.sin(performance.now() * 0.00025) * 0.09;
+  }
+
+  const scale = Math.min(w, h) * zoomLevel;
+  const breached = D_drift > SEMANTIC_CLAMP || D_load > SEMANTIC_CLAMP || D_noise > SEMANTIC_CLAMP;
+
+  ctx3d.strokeStyle = "rgba(30, 38, 56, 0.4)";
+  ctx3d.lineWidth = 1;
+  const bounds = [-1, 1];
+  for (let x of bounds) {
+    for (let y of bounds) {
+      ctx3d.beginPath();
+      for (let i = 0; i <= 5; i++) {
+        let z = -1 + (i * 0.4);
+        let p = project3D(x * scale, y * scale, z * scale, w, h);
+        if (i === 0) ctx3d.moveTo(p.x, p.y);
+        else ctx3d.lineTo(p.x, p.y);
+      }
+      ctx3d.stroke();
+    }
+  }
+
+  const t = performance.now() * 0.0015;
+  const radius = 10 + (D_load * 80);
+
+  const S = {
+    x: Math.sin(t) * radius,
+    y: Math.cos(t * 0.8) * (radius * 0.5),
+    z: Math.cos(t) * radius
+  };
+  const R = {
+    x: Math.sin(t + 1.3) * (radius * 0.9),
+    y: Math.sin(t * 0.5) * (radius * 0.7),
+    z: Math.cos(t + 0.6) * (radius * 0.8)
+  };
+  const O = {
+    x: Math.cos(t * 1.2) * (radius * 0.85),
+    y: Math.sin(t + 1.5) * (radius * 0.6),
+    z: Math.sin(t * 0.9) * (radius * 0.95)
+  };
+
+  if (!freezeGeometry && performance.now() % 2 < 1.3) {
+    particleTrail.push({ x: S.x, y: S.y, z: S.z, color: "rgba(0, 229, 255, ", life: 1.0 });
+    particleTrail.push({ x: R.x, y: R.y, z: R.z, color: "rgba(0, 255, 136, ", life: 1.0 });
+  }
+
+  particleTrail.forEach((p, idx) => {
+    p.life -= 0.02;
+    if (p.life <= 0) { particleTrail.splice(idx, 1); return; }
+    const proj = project3D(p.x, p.y, p.z, w, h);
+    if (proj.x >= 0 && proj.x <= w && proj.y >= 0 && proj.y <= h) {
+      ctx3d.fillStyle = p.color + (breached ? p.life * 0.4 : p.life * 0.2) + ")";
+      ctx3d.fillRect(proj.x, proj.y, 2, 2);
+    }
+  });
+  if (particleTrail.length > MAX_TRAIL_PARTICLES) particleTrail.shift();
+
+  const pS = project3D(S.x, S.y, S.z, w, h);
+  const pR = project3D(R.x, R.y, R.z, w, h);
+  const pO = project3D(O.x, O.y, O.z, w, h);
+
+  ctx3d.lineWidth = 1.5;
+  ctx3d.strokeStyle = breached ? "rgba(255, 51, 102, 0.6)" : "rgba(0, 229, 255, 0.4)";
+  ctx3d.beginPath();
+  ctx3d.moveTo(pS.x, pS.y);
+  ctx3d.lineTo(pR.x, pR.y);
+  ctx3d.lineTo(pO.x, pO.y);
+  ctx3d.closePath();
+  ctx3d.stroke();
+
+  const nodes = [
+    { p: pS, color: "#00e5ff", lbl: "S" },
+    { p: pR, color: "#00ff88", lbl: "R" },
+    { p: pO, color: "#ff3366", lbl: "σ" }
+  ];
+  nodes.forEach(n => {
+    ctx3d.fillStyle = n.color;
+    ctx3d.beginPath();
+    ctx3d.arc(n.p.x, n.p.y, 5, 0, Math.PI * 2);
+    ctx3d.fill();
+    ctx3d.fillStyle = "#8a99ad";
+    ctx3d.font = "9px monospace";
+    ctx3d.fillText(n.lbl, n.p.x + 6, n.p.y + 2);
+  });
+
+  const angleS = (Math.atan2(S.y, S.x) + Math.PI * 2) % (Math.PI * 2);
+  const angleR = (Math.atan2(R.y, R.x) + Math.PI * 2) % (Math.PI * 2);
+  const angleO = (Math.atan2(O.y, O.x) + Math.PI * 2) % (Math.PI * 2);
+
+  document.getElementById("triad-S").innerText = angleS.toFixed(3);
+  document.getElementById("triad-R").innerText = angleR.toFixed(3);
+  document.getElementById("triad-O").innerText = angleO.toFixed(3);
+
+  const spreadSR = Math.abs(angleS - angleR);
+  const spreadRO = Math.abs(angleR - angleO);
+  const spreadSO = Math.abs(angleS - angleO);
+
+  document.getElementById("triad-spread-SR").innerText = spreadSR.toFixed(3);
+  document.getElementById("triad-spread-RO").innerText = spreadRO.toFixed(3);
+  document.getElementById("triad-spread-SO").innerText = spreadSO.toFixed(3);
+}
+
+// ================================
+// Learning Distortion Runtime
+// ================================
+let D_drift = 0, D_load = 0, D_noise = 0, MODE = "PI_COGNITION";
+const SEMANTIC_CLAMP = 0.6;
+let currentScenario = "baseline";
+
+function applyAlignment(val, clamp = SEMANTIC_CLAMP) {
+  return val > clamp ? clamp + (val - clamp) * 0.05 : val;
+}
+
+function resizeCanvas(c) {
+  c.width = c.clientWidth;
+  c.height = c.clientHeight;
+}
+
+function scenarioOffsets() {
+  switch (currentScenario) {
+    case "highload":
+      return { drift: 0.18, load: 0.26, noise: 0.10 };
+    case "fragmented":
+      return { drift: 0.22, load: 0.14, noise: 0.28 };
+    case "exam":
+      return { drift: 0.35, load: 0.40, noise: 0.32 };
+    default:
+      return { drift: 0.08, load: 0.10, noise: 0.06 };
+  }
+}
+
+function updateLearnerTable() {
+  const tbody = document.getElementById("learner-tbody");
+  const offsets = scenarioOffsets();
+
+  const learners = [
+    { id: "LR-ALPHA", profile: "Foundational track", drift: D_drift * (0.85 + offsets.drift), load: D_load * (0.90 + offsets.load), noise: D_noise * (1.00 + offsets.noise) },
+    { id: "LR-BETA", profile: "Advanced module", drift: D_drift * (1.05 + offsets.drift), load: D_load * (1.10 + offsets.load), noise: D_noise * (0.88 + offsets.noise) },
+    { id: "LR-GAMMA", profile: "Mixed curriculum", drift: D_drift * (0.95 + offsets.drift), load: D_load * (0.80 + offsets.load), noise: D_noise * (1.02 + offsets.noise) }
+  ];
+
+  tbody.innerHTML = "";
+  learners.forEach(l => {
+    const isBreached = l.drift > SEMANTIC_CLAMP || l.load > SEMANTIC_CLAMP || l.noise > SEMANTIC_CLAMP;
+    const isWarn = !isBreached && (l.drift > SEMANTIC_CLAMP * 0.8 || l.load > SEMANTIC_CLAMP * 0.8 || l.noise > SEMANTIC_CLAMP * 0.8);
+    const tr = document.createElement("tr");
+    if (isBreached) tr.className = "alert-row";
+    else if (isWarn) tr.className = "warn-row";
+
+    tr.innerHTML = `
+      <td>${l.id}</td>
+      <td>${l.profile}</td>
+      <td>${l.drift.toFixed(3)}</td>
+      <td>${l.load.toFixed(3)}</td>
+      <td>${l.noise.toFixed(3)}</td>
+      <td>${isBreached ? "BREACH" : (isWarn ? "WATCH" : "NOMINAL")}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateEducationRuntime() {
+  [cvLearning, cvLattice, cv3d].forEach(resizeCanvas);
+
+  const tDrift = parseFloat(document.getElementById("inj-drift").value);
+  const tLoad = parseFloat(document.getElementById("inj-load").value);
+  const tNoise = parseFloat(document.getElementById("inj-noise").value);
+
+  const offsets = scenarioOffsets();
+
+  const targetDrift = tDrift + offsets.drift;
+  const targetLoad = tLoad + offsets.load;
+  const targetNoise = tNoise + offsets.noise;
+
+  if (MODE === "CLASSICAL") {
+    D_drift += (targetDrift - D_drift) * 0.12 + (Math.random() - 0.5) * 0.01;
+    D_load += (targetLoad - D_load) * 0.12 + (Math.random() - 0.5) * 0.01;
+    D_noise += (targetNoise - D_noise) * 0.12 + (Math.random() - 0.5) * 0.01;
+  } else {
+    D_drift += (applyAlignment(targetDrift) - D_drift) * 0.12;
+    D_load += (applyAlignment(targetLoad) - D_load) * 0.12;
+    D_noise += (applyAlignment(targetNoise) - D_noise) * 0.12;
+  }
+
+  D_drift = Math.max(0, Math.min(1.2, D_drift));
+  D_load = Math.max(0, Math.min(1.2, D_load));
+  D_noise = Math.max(0, Math.min(1.2, D_noise));
+
+  document.getElementById("m-drift").innerText = D_drift.toFixed(4);
+  document.getElementById("m-load").innerText = D_load.toFixed(4);
+  document.getElementById("m-noise").innerText = D_noise.toFixed(4);
+
+  const breached = D_drift > SEMANTIC_CLAMP || D_load > SEMANTIC_CLAMP || D_noise > SEMANTIC_CLAMP;
+  const nearClamp = !breached && (D_drift > SEMANTIC_CLAMP * 0.85 || D_load > SEMANTIC_CLAMP * 0.85 || D_noise > SEMANTIC_CLAMP * 0.85);
+
+  const status = document.getElementById("cog-status");
+  status.className = breached ? "status-badge breach" : (nearClamp ? "status-badge warn" : "status-badge");
+  status.innerText = breached ? "S = R = σ (BREACH)" : (nearClamp ? "S = R = σ (WATCH)" : "S = R = σ (NOMINAL)");
+
+  const fb = document.getElementById("fb-invariant");
+  fb.innerText = breached ? "BREACH" : (nearClamp ? "WATCH" : "NOMINAL");
+  fb.style.color = breached ? "var(--danger)" : (nearClamp ? "var(--amber)" : "var(--green)");
+
+  const rootEl = document.documentElement;
+  rootEl.style.setProperty('--panel-border', breached ? 'rgba(255, 51, 102, 0.4)' : '#1e2638');
+  rootEl.style.setProperty('--panel-glow', breached ? 'rgba(255, 51, 102, 0.08)' : 'rgba(0, 229, 255, 0.04)');
+
+  update3DProjection();
+  updateLearnerTable();
+  drawLearningScope();
+  drawLatticeStrip();
+  handleAudioSynthesis(breached, Math.max(D_drift, D_load, D_noise));
+
+  document.getElementById("jsonld-out").innerText = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    "dslo:nodeIdentifier": "SM-DSLO-80058",
+    "dslo:masterInvariant": "S = R = σ",
+    "dslo:educationMetrics": {
+      "progressionDriftMetric": parseFloat(D_drift.toFixed(4)),
+      "cognitiveLoadMetric": parseFloat(D_load.toFixed(4)),
+      "attentionNoiseMetric": parseFloat(D_noise.toFixed(4))
+    },
+    "dslo:operatorMode": MODE,
+    "dslo:scenarioProfile": currentScenario,
+    "dslo:systemStatus": breached ? "LEARNING_RISK" : (nearClamp ? "ELEVATED" : "STABLE")
+  }, null, 2);
+
+  document.getElementById("diag-out").innerText =
+    "Runtime tick: " + performance.now().toFixed(0) +
+    "\nMODE: " + MODE +
+    "\nScenario: " + currentScenario +
+    "\nProgression drift: " + D_drift.toFixed(4) +
+    "\nCognitive load: " + D_load.toFixed(4) +
+    "\nAttention noise: " + D_noise.toFixed(4);
+
+  requestAnimationFrame(updateEducationRuntime);
+}
+
+// ================================
+// UI Wiring
+// ================================
+window.addEventListener("DOMContentLoaded", () => {
+  const btnPi = document.getElementById("mode-pi");
+  const btnClassical = document.getElementById("mode-classical");
+  const btnFreeze = document.getElementById("mode-freeze");
+  const audioToggle = document.getElementById("audio-toggle");
+  const modeBadge = document.getElementById("mode-badge");
+  const scenarioBadge = document.getElementById("scenario-badge");
+
+  btnPi.onclick = () => {
+    MODE = "PI_COGNITION";
+    btnPi.classList.add("active");
+    btnClassical.classList.remove("active");
+    modeBadge.innerText = "Mode: Π_coherence";
+    modeBadge.className = "status-badge warn";
+  };
+  btnClassical.onclick = () => {
+    MODE = "CLASSICAL";
+    btnClassical.classList.add("active");
+    btnPi.classList.remove("active");
+    modeBadge.innerText = "Mode: Legacy instruction loop";
+    modeBadge.className = "status-badge";
+  };
+  btnFreeze.onclick = () => {
+    freezeGeometry = !freezeGeometry;
+    btnFreeze.classList.toggle("active", freezeGeometry);
+    btnFreeze.innerText = freezeGeometry ? "Freeze geometry (ON)" : "Freeze geometry snapshot";
+  };
+
+  audioToggle.onclick = () => {
+    if (!audioCtx) {
+      initAudioEngine();
+    } else if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+      audioToggle.innerText = "Beacon Active";
+      audioToggle.classList.add("enabled");
+      audioToggle.classList.remove("warn");
+    } else if (audioCtx.state === 'running') {
+      audioCtx.suspend();
+      audioToggle.innerText = "Beacon Muted";
+      audioToggle.classList.remove("enabled");
+      audioToggle.classList.add("warn");
+    }
+  };
+
+  const scenarioButtons = document.querySelectorAll(".mode-btn.scenario");
+  scenarioButtons.forEach(btn => {
+    btn.onclick = () => {
+      scenarioButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentScenario = btn.getAttribute("data-scenario");
+      scenarioBadge.innerText = "Scenario: " + btn.innerText;
+    };
+  });
+
+  const sliders = [
+    { id: "inj-drift", valId: "val-drift" },
+    { id: "inj-load", valId: "val-load" },
+    { id: "inj-noise", valId: "val-noise" }
+  ];
+  sliders.forEach(s => {
+    const el = document.getElementById(s.id);
+    const valEl = document.getElementById(s.valId);
+    el.addEventListener("input", () => {
+      valEl.innerText = parseFloat(el.value).toFixed(2);
+    });
+  });
+
+  updateEducationRuntime();
+});
+</script>
+</body>
+</html>
 
