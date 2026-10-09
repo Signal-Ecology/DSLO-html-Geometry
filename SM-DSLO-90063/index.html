@@ -1,1 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSLO Artemis-Archi Lunar Base Node Dashboard (SM-DSLO-90063)</title>
+  <style>
+    :root {
+      --bg: #05070a;
+      --card: #10141d;
+      --accent: #00e5ff;
+      --danger: #ff3366;
+      --text: #e0e6ed;
+      --subtext: #8a99ad;
+      --border: #1e2638;
+      --green: #00ff88;
+      --yellow: #ffcc00;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
+    body { background: var(--bg); color: var(--text); padding: 16px; font-size: 13px; }
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px;
+    }
+    h1 { font-size: 16px; color: var(--accent); letter-spacing: 1px; }
+    .subhead { font-size: 11px; color: var(--subtext); }
+    .status-badge {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid var(--green);
+      color: var(--green);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    .status-badge.breach {
+      background: rgba(255, 51, 102, 0.1);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+    .grid-root {
+      display: grid;
+      grid-template-columns: 280px 1.4fr 1.2fr;
+      gap: 12px;
+      height: calc(100vh - 80px);
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .surface-title {
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+    .surface-card {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px;
+      font-size: 11px;
+    }
+    .env-select {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .env-btn {
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: #080b12;
+      color: var(--subtext);
+      font-size: 10px;
+      cursor: pointer;
+    }
+    .env-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0, 229, 255, 0.08);
+    }
+    canvas {
+      width: 100%;
+      height: 200px;
+      background: #000;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+    .control-group { display: flex; flex-direction: column; gap: 4px; }
+    label { font-size: 10px; color: var(--subtext); text-transform: uppercase; }
+    .slider-input { width: 100%; accent-color: var(--accent); }
+    .audio-btn { padding: 8px; background: var(--accent); color: #000; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 6px; }
+    pre {
+      font-size: 10px;
+      color: var(--green);
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 160px;
+      overflow-y: auto;
+      background: #05070a;
+      padding: 6px;
+      border-radius: 4px;
+    }
+    .layer-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    .tolerance-list {
+      font-size: 10px;
+      color: var(--subtext);
+      line-height: 1.4;
+    }
+    .tensor-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--subtext);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>DSLO Artemis-Archi Lunar Base Node Dashboard</h1>
+      <div class="subhead">
+        Node: SM-DSLO-90063 · Root: SM-DSLO-90060 · Metadata: SM-DSLO-90061 · DOI: 10.5281/zenodo.22965113
+      </div>
+    </div>
+    <div id="master-status" class="status-badge">S = R = o (NOMINAL)</div>
+  </header>
 
+  <div class="grid-root">
+    <div class="panel">
+      <div class="surface-card">
+        <div class="surface-title">ENVIRONMENT SELECTOR (90221.7)</div>
+        <div class="subhead">Tensor-driven substrate modes</div>
+        <div class="env-select" id="env-select">
+          <button class="env-btn active" data-mode="quiet">Quiet Space</button>
+          <button class="env-btn" data-mode="lab">Lab Mode</button>
+          <button class="env-btn" data-mode="field">Field Mode</button>
+          <button class="env-btn" data-mode="stress">Stress Mode</button>
+          <button class="env-btn" data-mode="vacuum">Vacuum Mode</button>
+          <button class="env-btn" data-mode="custom">Custom</button>
+        </div>
+      </div>
+
+      <div class="surface-card">
+        <div class="surface-title">LINEAGE & METADATA (SM-DSLO-90063)</div>
+        <div class="tolerance-list">
+          <strong>Root Lineage:</strong> SM-DSLO-90060 (Meaning Physics)<br>
+          <strong>Metadata Root:</strong> SM-DSLO-90061<br>
+          <strong>Node Identifier:</strong> DSLO-ARTEMIS-ARCHI-LUNAR-v0.9<br>
+          <strong>Ontology Class:</strong> Reverse_Runtime_Substrate_Geometry<br>
+          <strong>Registry Anchor:</strong> CAPABILITY_GRAPH_LUNAR_NODE<br>
+          <strong>Exposure Level:</strong> MODE_A_PUBLIC_SAFE
+        </div>
+      </div>
+
+      <div class="surface-card">
+        <div class="surface-title">SUBSTRATE ATLAS (90221.9)</div>
+        <div class="tolerance-list">
+          Root: SM-DSLO-90060 → Node: SM-DSLO-90063<br>
+          HasPart: SM-DSLO-90062 (Runtime Substrate)<br>
+          HasPart: SM-DSLO-90064 (Forward SOP Execution)<br><br>
+          Layers:<br>
+          L1: Physical / Thermal<br>
+          L2: Sovereign Energy<br>
+          L3: Sensor / Robotics<br>
+          L4: Cognitive Safety<br>
+          L5: Human Labor<br>
+          L6: Cryptographic Identity
+        </div>
+      </div>
+<div class="surface-card">
+  <div class="surface-title">ROBOTICS SUBSTRATE (SM-DSLO-90062)</div>
+  <div class="tolerance-list">
+    <strong>Static Release ID:</strong> SM-DSLO-90062<br>
+    <strong>DOI:</strong> 10.5281/zenodo.22965021<br>
+    <strong>Ontology Class:</strong> Embodied_Runtime_Substrate_Geometry<br>
+    <strong>Runtime Loop:</strong> Sense → Coherence → Meaning → Action → Fallback
+    <br><br>
+    <strong>Robotic Substrate Objects:</strong><br>
+    · <em>Robotic Gradient (G)</em>: posture-modulated physical sensing<br>
+    · <em>RuntimeSense (S)</em>: unified sensing, mapping, and fallback binding<br>
+    · <em>Capability Container (C)</em>: bounded relational task isolation<br>
+    · <em>Posture Envelope (P)</em>: gain, stiffness, and constraint modulation<br>
+    · <em>Execution Primitives (E)</em>: lawful state transitions<br>
+    · <em>Drift-Detection Twin (D)</em>: deviation tracking and fallback trigger
+    <br><br>
+    <strong>SCMA-F Runtime:</strong><br>
+    Sense → Coherence → Meaning → Action → Fallback<br>
+    “The Sense -> Coherence -> Meaning -> Action (SCMA) loop governs execution as a deterministic, invariant-preserving cycle.” 
+  </div>
+</div>
+
+    </div>
+
+    <div class="panel">
+      <div class="surface-title">MEANING-PHYSICS WAVEFORM (L1–L3)</div>
+      <canvas id="scope"></canvas>
+
+      <div class="controls">
+        <div class="control-group"><label>Ultrasonic Gain</label><input type="range" class="slider-input" id="gain-slider" min="0" max="0.3" step="0.01" value="0.1"></div>
+        <div class="control-group"><label>RF Phase Angle</label><input type="range" class="slider-input" id="phase-slider" min="0" max="360" value="120"></div>
+        <div class="control-group"><label>Piezo Strain</label><input type="range" class="slider-input" id="strain-slider" min="0" max="1" step="0.01" value="0.3"></div>
+        <div class="control-group"><label>Barometric Pressure</label><input type="range" class="slider-input" id="pressure-slider" min="0" max="10" step="0.1" value="3.0"></div>
+      </div>
+
+      <button id="audio-btn" class="audio-btn">
+        INITIALIZE HARDWARE WEBAUDIO DSP
+      </button>
+
+      <div class="surface-card">
+        <div class="surface-title">LAYER STACK (L1–L6)</div>
+        <div class="layer-grid">
+          <div>
+            <strong>L1 Regolith & Thermal Backbone</strong><br>
+            Sintered regolith vault · Air-gap · Ti-C pressure vessel · NaK heat pipes · GPU heat (20–40 kW)
+          </div>
+          <div>
+            <strong>L2 Sovereign Energy & Island Autonomy</strong><br>
+            VSA solar · Kilopower reactor · HVDC 1000 V · RFC H₂/O₂ storage · microgrid stability
+          </div>
+          <div>
+            <strong>L3 Perception Mesh & Autonomous Maintenance</strong><br>
+            UWB · LIDAR · strain gauges · acoustic FFT · non-surveillant AMRs
+          </div>
+          <div>
+            <strong>L4 Cognitive-Safety & Meaning Protection</strong><br>
+            cognitive Faraday cage · < 30 dBA · circadian spectrum · semantic firewall
+          </div>
+          <div>
+            <strong>L5 Lunar Labor Geometry</strong><br>
+            Euler buckling cognitive load · 2-on / 2-off shifts · AI-paired dyads
+          </div>
+          <div>
+            <strong>L6 Cryptographic Identity & Offworld Federation</strong><br>
+            TPM enclaves · Tier A/B/C trust · inverted command pipeline · non-surveillant memory
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="surface-card">
+        <div class="surface-title">UNIFIED FALLBACK TENSOR (90221.8)</div>
+        <div class="tensor-row">
+          <span>Safety (SPL)</span><span id="tensor-safety">NOMINAL</span>
+        </div>
+        <div class="tensor-row">
+          <span>Signal (Strain)</span><span id="tensor-signal">NOMINAL</span>
+        </div>
+        <div class="tensor-row">
+          <span>Sync (Phase)</span><span id="tensor-sync">NOMINAL</span>
+        </div>
+        <div class="tensor-row">
+          <span>Control (Pressure)</span><span id="tensor-control">NOMINAL</span>
+        </div>
+        <div class="tensor-row" style="margin-top:6px;">
+          <span><strong>Unified State</strong></span><span id="tensor-state">NOMINAL</span>
+        </div>
+      </div>
+
+      <div class="surface-card">
+        <div class="surface-title">REAL-WORLD TOLERANCE REFERENCE (90221.6)</div>
+        <div class="tolerance-list">
+          <strong>Safety (SPL):</strong> Safe ≤ 70 dBA · Breach > 85 dBA<br>
+          <strong>Signal (Piezo Strain):</strong> Safe ≤ 0.5 · Breach > 0.6<br>
+          <strong>Sync (Phase Drift):</strong> Safe ≤ 180° · Breach > 200°<br>
+          <strong>Control (Pressure):</strong> Safe ≤ 4.0 · Breach > 5.0
+        </div>
+      </div>
+
+      <div class="surface-card" style="flex:1; display:flex; flex-direction:column;">
+        <div class="surface-title">JSON-LD STATE TENSOR (SM-DSLO-90063)</div>
+        <pre id="jsonld-out">Initializing DSLO Lunar Node state tensor...</pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ENV_MODES = {
+      quiet:  { spl: 50, strain: 0.4, phase: 120, pressure: 3.0 },
+      lab:    { spl: 60, strain: 0.5, phase: 160, pressure: 4.0 },
+      field:  { spl: 70, strain: 0.6, phase: 200, pressure: 5.0 },
+      stress: { spl: 80, strain: 0.7, phase: 240, pressure: 6.0 },
+      vacuum: { spl: 55, strain: 0.5, phase: 140, pressure: 2.5 },
+      custom: { spl: 65, strain: 0.55, phase: 180, pressure: 4.5 }
+    };
+
+    let audioCtx, osc, gainNode;
+    let currentEnv = 'quiet';
+    let fallbackState = 'NOMINAL';
+
+    document.getElementById('audio-btn').onclick = (e) => {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        osc = audioCtx.createOscillator();
+        gainNode = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.start();
+      }
+
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      const btn = document.getElementById('audio-btn');
+      btn.innerText = "DSP HETERODYNE ACTIVE";
+      btn.style.background = "var(--green)";
+    };
+
+    const scope = document.getElementById('scope');
+    const ctx = scope.getContext('2d');
+    let step = 0;
+
+    function renderScope() {
+      const rect = scope.getBoundingClientRect();
+      scope.width = rect.width;
+      scope.height = rect.height;
+
+      ctx.fillStyle = '#05070a';
+      ctx.fillRect(0, 0, scope.width, scope.height);
+
+      const gain = parseFloat(document.getElementById('gain-slider').value);
+      const phase = parseFloat(document.getElementById('phase-slider').value);
+      const strain = parseFloat(document.getElementById('strain-slider').value);
+      const pressure = parseFloat(document.getElementById('pressure-slider').value);
+
+      step += (pressure * 2);
+
+      ctx.beginPath();
+      ctx.strokeStyle = strain > 0.5 ? '#ff3366' : '#00e5ff';
+      ctx.lineWidth = 2;
+
+      for (let x = 0; x < scope.width; x++) {
+        const y = scope.height / 2 +
+          Math.sin((x + step) * 0.04 + (phase * Math.PI / 180)) * (gain * 260);
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      const splVal = (gain * 300).toFixed(1);
+      const env = Reflect.get(ENV_MODES, currentEnv);
+      
+      const tensor = {
+        safety: splVal > env.spl,
+        signal: strain > env.strain,
+        sync:   phase > env.phase,
+        control: pressure > env.pressure
+      };
+
+      function computeUnifiedFallback(t) {
+        if (t.safety) return 'SAFETY BREACH';
+        if (t.signal) return 'SIGNAL BREACH';
+        if (t.sync)   return 'SYNC BREACH';
+        if (t.control) return 'CONTROL BREACH';
+        return 'NOMINAL';
+      }
+
+      fallbackState = computeUnifiedFallback(tensor);
+
+      document.getElementById('tensor-safety').innerText  = tensor.safety  ? 'BREACH' : 'NOMINAL';
+      document.getElementById('tensor-signal').innerText  = tensor.signal  ? 'BREACH' : 'NOMINAL';
+      document.getElementById('tensor-sync').innerText    = tensor.sync    ? 'BREACH' : 'NOMINAL';
+      document.getElementById('tensor-control').innerText = tensor.control ? 'BREACH' : 'NOMINAL';
+      document.getElementById('tensor-state').innerText   = fallbackState;
+
+      const status = document.getElementById('master-status');
+      if (fallbackState !== 'NOMINAL') {
+        status.className = 'status-badge breach';
+        status.innerText = 'S = R = o (' + fallbackState + ')';
+        
+        if (audioCtx) {
+          gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+        }
+      } else {
+        status.className = 'status-badge';
+        status.innerText = 'S = R = o (NOMINAL)';
+        
+        if (audioCtx) {
+          gainNode.gain.setTargetAtTime(gain, audioCtx.currentTime, 0.05);
+          osc.frequency.setTargetAtTime(440 + phase, audioCtx.currentTime, 0.05);
+        }
+      }
+
+      updateJSONLD(splVal, strain, phase, pressure, env);
+      requestAnimationFrame(renderScope);
+    }
+
+    function updateJSONLD(splVal, strain, phase, pressure, env) {
+      const jsonld = {
+        "@context": "https://schema.org",
+        "@type": "Observation",
+        "dslo:nodeID": "DSLO-ARTEMIS-ARCHI-LUNAR-v0.9",
+        "dslo:masterInvariant": "S = R = o",
+        "dslo:activeDOI": "10.5281/zenodo.22965113",
+        "dslo:environmentMode": currentEnv,
+        "dslo:fallbackState": fallbackState,
+        "dslo:tolerances": {
+          "safety_SPL": {
+            "safeMax_dBA": 70,
+            "breach_dBA": env.spl,
+            "current_dBA": parseFloat(splVal)
+          },
+          "signal_piezoStrain": {
+            "safeMax": 0.5,
+            "breach": env.strain,
+            "current": strain
+          },
+          "sync_phaseDrift": {
+            "safeMax_deg": 180,
+            "breach_deg": env.phase,
+            "current_deg": phase
+          },
+          "control_pressure": {
+            "safeMax": 4.0,
+            "breach": env.pressure,
+            "current": pressure
+          }
+        }
+      };
+
+      document.getElementById('jsonld-out').innerText =
+        JSON.stringify(jsonld, null, 2);
+    }
+
+    document.getElementById('env-select').addEventListener('click', (e) => {
+      if (e.target.classList.contains('env-btn')) {
+        document.querySelectorAll('.env-btn').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        currentEnv = e.target.getAttribute('data-mode');
+      }
+    });
+
+    window.onload = () => {
+      renderScope();
+    };
+  </script>
+</body>
+</html>
