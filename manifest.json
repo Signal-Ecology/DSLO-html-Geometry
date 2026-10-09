@@ -1,1 +1,85 @@
+{
+  "repo": "dslo-html-geometry",
+  "description": "Collection of DSLO HTML geometry demonstrations illustrating S–R–σ invariant behavior and coherence surfaces.",
+  "version": "0.1",
+  "updated": "2026-10-09",
+
+  "geometry_surfaces": [
+    {
+      "id": "SM-DSLO-90310",
+      "folder": "SM-DSLO-90310",
+      "html": "SM-DSLO-90310/index.html",
+      "readme": "SM-DSLO-90310/README.md",
+      "short_description": "Power-grid coherence geometry demonstration",
+      "doi": "10.5281/zenodo.10.5281/zenodo.22736043"
+    },
+    {
+      "id": "SM-DSLO-90610",
+      "folder": "SM-DSLO-90610",
+      "html": "SM-DSLO-90610/index.html",
+      "readme": "SM-DSLO-90610/README.md",
+      "short_description": "Healthcare coherence geometry demonstration",
+      "doi": "10.5281/zenodo.10.5281/zenodo.22648148"
+    },
+    {
+      "id": "SM-DSLO-80059",
+      "folder": "SM-DSLO-80059",
+      "html": "SM-DSLO-80059/index.html",
+      "readme": "SM-DSLO-80059/README.md",
+      "short_description": "AI collapse-limit geometry visualizer",
+      "doi": "10.5281/zenodo.22648418"
+    },
+    {
+      "id": "SM-DSLO-80058",
+      "folder": "SM-DSLO-80058",
+      "html": "SM-DSLO-80058/index.html",
+      "readme": "SM-DSLO-80058/README.md",
+      "short_description": "Education coherence geometry demonstration",
+      "doi": "10.5281/zenodo.22648339"
+    },
+    {
+      "id": "SM-DSLO-80041",
+      "folder": "SM-DSLO-80041",
+      "html": "SM-DSLO-80041/index.html",
+      "readme": "SM-DSLO-80041/README.md",
+      "short_description": "Air traffic coherence geometry demonstration",
+      "doi": "10.5281/zenodo.22180163"
+    },
+    {
+      "id": "SM-DSLO-90070",
+      "folder": "SM-DSLO-90070",
+      "html": "SM-DSLO-90070/index.html",
+      "readme": "SM-DSLO-90070/README.md",
+      "short_description": "Cognitive substrate geometry demonstration",
+      "doi": "10.5281/zenodo.23001015"
+    },
+    {
+      "id": "SM-DSLO-90080",
+      "folder": "SM-DSLO-90080",
+      "html": "SM-DSLO-90080/index.html",
+      "readme": "SM-DSLO-90080/README.md",
+      "short_description": "Millennium runtime geometry demonstration",
+      "doi": "10.5281/zenodo.23042992"
+    },
+    {
+      "id": "SM-DSLO-90063",
+      "folder": "SM-DSLO-90063",
+      "html": "SM-DSLO-90063/index.html",
+      "readme": "SM-DSLO-90063/README.md",
+      "short_description": "Lunar node geometry demonstration",
+      "doi": "10.5281/zenodo.22965113"
+    },
+    {
+      "id": "SM-DSLO-90062",
+      "folder": "SM-DSLO-90062",
+      "html": "SM-DSLO-90062/index.html",
+      "readme": "SM-DSLO-90062/README.md",
+      "short_description": "Robotics substrate geometry demonstration",
+      "doi": "10.5281/zenodo.22965021"
+    }
+  ],
+
+  "invariant": "S = R = σ",
+  "notes": "All surfaces are static HTML geometry demonstrations. No runtime substrate engines or NDA content."
+}
 
