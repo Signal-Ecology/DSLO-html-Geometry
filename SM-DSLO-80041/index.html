@@ -1,1 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SM-DSLO-80041: Sovereign ATC Coherence Surface</title>
+
+<style>
+:root {
+  --bg: #05070a;
+  --card: #10141d;
+  --accent: #00e5ff;
+  --danger: #ff3366;
+  --text: #e0e6ed;
+  --subtext: #8a99ad;
+  --border: #1e2638;
+  --green: #00ff88;
+  --panel-glow: rgba(0, 229, 255, 0.03);
+  --panel-border: var(--border);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
+body { background: var(--bg); color: var(--text); padding: 16px; font-size: 13px; }
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  transition: border-color 0.4s ease;
+}
+
+h1 { font-size: 16px; color: var(--accent); letter-spacing: 1px; }
+.subhead { font-size: 11px; color: var(--subtext); }
+
+.status-badge {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid var(--green);
+  color: var(--green);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+.status-badge.breach {
+  background: rgba(255, 51, 102, 0.1);
+  border-color: var(--danger);
+  color: var(--danger);
+  animation: alert-pulse 1.5s infinite alternate;
+}
+
+.grid-root {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1.3fr;
+  gap: 12px;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: inset 0 0 20px var(--panel-glow);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.surface-card {
+  background: rgba(16, 20, 29, 0.6);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  transition: border-color 0.4s ease;
+}
+
+.surface-title {
+  font-size: 10px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+.text-row {
+  font-size: 10px;
+  color: var(--subtext);
+  margin: 2px 0;
+}
+
+.btn-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.mode-btn {
+  background: #10141d;
+  border: 1px solid var(--panel-border);
+  color: var(--accent);
+  padding: 6px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+.mode-btn:hover { background: #0d1118; border-color: var(--accent); }
+.mode-btn.active {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: var(--accent);
+}
+
+.audio-btn {
+  width: 100%;
+  background: #15202b;
+  border: 1px solid #22303c;
+  color: var(--subtext);
+  padding: 6px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: bold;
+  margin-top: 6px;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+.audio-btn.enabled {
+  background: rgba(0, 255, 136, 0.15);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+canvas {
+  width: 100%;
+  height: 120px;
+  background: #000;
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+  display: block;
+  transition: border-color 0.4s ease;
+}
+canvas.projection-3d { height: 200px; cursor: grab; }
+canvas.radar-scope { height: 160px; }
+canvas.projection-3d:active { cursor: grabbing; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  margin-top: 4px;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 4px 6px;
+  text-align: left;
+}
+th {
+  background: #0b1118;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+tr.alert-row {
+  color: var(--danger);
+  background: rgba(255, 51, 102, 0.05);
+}
+
+pre {
+  font-size: 10px;
+  color: var(--green);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 130px;
+  overflow-y: auto;
+  background: #05070a;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--subtext);
+  margin: 2px 0;
+}
+.metric-row span:last-child {
+  color: var(--text);
+  font-weight: bold;
+}
+
+.slider-group {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.slider-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.slider-container label {
+  font-size: 9px;
+  color: var(--subtext);
+  width: 85px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.slider-container input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent);
+  cursor: pointer;
+  height: 4px;
+}
+
+@keyframes alert-pulse {
+  from { box-shadow: 0 0 4px rgba(255, 51, 102, 0.2); }
+  to { box-shadow: 0 0 12px rgba(255, 51, 102, 0.6); }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>
+    <h1>SM-DSLO-80041: Sovereign Air Traffic Coherence Surface</h1>
+    <div class="subhead">
+      Node: SM-DSLO-80041 · Domain: ATC Airspace Manifold · Root: SM-DSLO-90060 · DOI: 10.5281/zenodo.22180163
+    </div>
+  </div>
+  <div id="cog-status" class="status-badge">S = R = σ (NOMINAL)</div>
+</header>
+
+<div class="grid-root">
+
+  <!-- LEFT PANEL -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">AIRSPACE ALIGNMENT OPERATOR</div>
+      <div class="btn-row">
+        <button class="mode-btn active" id="mode-pi">Π_coherence Active (S = R = σ)</button>
+        <button class="mode-btn" id="mode-classical">Unconstrained Legacy Model</button>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">2D AIRSPACE RADAR SWEEP SCOPE</div>
+      <canvas id="cv-radar" class="radar-scope"></canvas>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">COHERENCE SONIFICATION BEACON</div>
+      <canvas id="cv-oscilloscope" style="height: 45px; border-color: #22303c;"></canvas>
+      <button class="audio-btn" id="audio-toggle">Muted (Click to Initialize)</button>
+    </div>
+  </div>
+
+  <!-- CENTER PANEL -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">UNIFIED 3D AIRSPACE PROJECTION (S-R-σ TENSOR)</div>
+      <div class="text-row" style="color: var(--accent); font-size:9px;">
+        Drag to rotate radar grid · Scroll to zoom.
+      </div>
+      <canvas id="cv-3d" class="projection-3d"></canvas>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">AIRSPACE SEPARATION DISTORTION INJECTION</div>
+      <div class="slider-group">
+        <div class="slider-container">
+          <label title="Separation Compression">Δ_separation:</label>
+          <input type="range" id="inj-context" min="0" max="1.2" step="0.01" value="0.1">
+        </div>
+        <div class="slider-container">
+          <label title="Trajectory Shear Divergence">T_shear:</label>
+          <input type="range" id="inj-drift" min="0" max="1.2" step="0.01" value="0.15">
+        </div>
+        <div class="slider-container">
+          <label title="Vector Pipeline Noise">SCMA Load:</label>
+          <input type="range" id="inj-scma" min="0" max="1.2" step="0.01" value="0.05">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">ACTIVE TRANSPONDER TRACKER RECORD</div>
+      <div style="max-height: 120px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px;">
+        <table>
+          <thead>
+            <tr><th>Target ID</th><th>Mode</th><th>Δ_Sep</th><th>D_Traj</th><th>Status</th></tr>
+          </thead>
+          <tbody id="transponder-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">UNIFIED COMPLIANCE METRICS</div>
+      <div class="metric-row"><span>Boundary Compression</span><span id="m-context">N/A</span></div>
+      <div class="metric-row"><span>Trajectory Divergence</span><span id="m-drift">N/A</span></div>
+      <div class="metric-row"><span>SCMA Pipeline Stability</span><span id="m-scma">N/A</span></div>
+      <div class="metric-row" style="border-top: 1px solid #1e2638; padding-top: 2px;">
+        <span>System Invariant State</span><span id="fb-invariant">NOMINAL</span>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">JSON-LD ARCHIVE MANIFEST SURFACES (.schema)</div>
+      <pre id="jsonld-out">Initializing ATC state matrix...</pre>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ================================
+// Web Audio Context Synthesizer Core
+// ================================
+let audioCtx = null, subOsc = null, alarmOsc = null, subGain = null, alarmGain = null, audioAnalyser = null;
+let audioBufferLength = 0, audioDataArray = null, audioEnabled = false;
+
+const cvOscilloscope = document.getElementById("cv-oscilloscope");
+const ctxOscilloscope = cvOscilloscope.getContext("2d");
+
+function initAudioEngine() {
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioAnalyser = audioCtx.createAnalyser();
+    audioAnalyser.fftSize = 512;
+    audioBufferLength = audioAnalyser.frequencyBinCount;
+    audioDataArray = new Uint8Array(audioBufferLength);
+
+    subOsc = audioCtx.createOscillator();
+    subOsc.type = 'triangle';
+    subOsc.frequency.setValueAtTime(65.41, audioCtx.currentTime);
+    subGain = audioCtx.createGain();
+    subGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+    subOsc.connect(subGain);
+    subGain.connect(audioAnalyser);
+
+    alarmOsc = audioCtx.createOscillator();
+    alarmOsc.type = 'sawtooth';
+    alarmOsc.frequency.setValueAtTime(110, audioCtx.currentTime);
+    alarmGain = audioCtx.createGain();
+    alarmGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(320, audioCtx.currentTime);
+    alarmOsc.connect(filter);
+    filter.connect(alarmGain);
+    alarmGain.connect(audioAnalyser);
+
+    audioAnalyser.connect(audioCtx.destination);
+
+    subOsc.start();
+    alarmOsc.start();
+
+    audioEnabled = true;
+    const btn = document.getElementById("audio-toggle");
+    btn.innerText = "Beacon Active";
+    btn.classList.add("enabled");
+  } catch(e) {
+    console.error("Web Audio initialization error:", e);
+  }
+}
+
+function handleAudioSynthesis(isBreached, masterMaxMetric) {
+  if (!audioEnabled || !audioCtx) return;
+  const now = audioCtx.currentTime;
+
+  const SEMANTIC_CLAMP = 0.6;
+  if (isBreached) {
+    subGain.gain.setTargetAtTime(0.01, now, 0.1);
+    alarmOsc.frequency.setTargetAtTime(110 + (masterMaxMetric * 120), now, 0.05);
+    alarmGain.gain.setTargetAtTime(Math.min(0.08, (masterMaxMetric - SEMANTIC_CLAMP) * 0.2), now, 0.08);
+  } else {
+    subOsc.frequency.setTargetAtTime(65.41 + (masterMaxMetric * 30), now, 0.1);
+    subGain.gain.setTargetAtTime(0.06, now, 0.2);
+    alarmGain.gain.setTargetAtTime(0.0, now, 0.1);
+  }
+}
+
+function drawOscilloscopeView(D_context, D_drift, D_scma) {
+  const w = cvOscilloscope.width, h = cvOscilloscope.height;
+  ctxOscilloscope.fillStyle = "#000";
+  ctxOscilloscope.fillRect(0, 0, w, h);
+
+  if (!audioEnabled || !audioAnalyser) return;
+
+  audioAnalyser.getByteTimeDomainData(audioDataArray);
+  const SEMANTIC_CLAMP = 0.6;
+  const breached = (D_context > SEMANTIC_CLAMP || D_drift > SEMANTIC_CLAMP || D_scma > SEMANTIC_CLAMP);
+  ctxOscilloscope.strokeStyle = breached ? "var(--danger)" : "var(--accent)";
+  ctxOscilloscope.lineWidth = 1.5;
+  ctxOscilloscope.beginPath();
+
+  const sliceWidth = w / audioBufferLength;
+  let x = 0;
+  for (let i = 0; i < audioBufferLength; i++) {
+    const v = audioDataArray[i] / 128.0;
+    const y = (v * h) / 2;
+    if (i === 0) ctxOscilloscope.moveTo(x, y);
+    else ctxOscilloscope.lineTo(x, y);
+    x += sliceWidth;
+  }
+  ctxOscilloscope.stroke();
+}
+
+// ================================
+// Radar Sweep Scope Engine
+// ================================
+const cvRadar = document.getElementById("cv-radar");
+const ctxRadar = cvRadar.getContext("2d");
+let radarSweepAngle = 0;
+
+function drawRadarScope(pS, pR, pO) {
+  const w = cvRadar.width, h = cvRadar.height;
+  ctxRadar.fillStyle = "#000";
+  ctxRadar.fillRect(0, 0, w, h);
+
+  const cx = w / 2, cy = h / 2, r = Math.min(cx, cy) * 0.9;
+
+  ctxRadar.strokeStyle = "rgba(0, 255, 136, 0.15)";
+  ctxRadar.lineWidth = 1;
+  ctxRadar.beginPath();
+  ctxRadar.arc(cx, cy, r, 0, Math.PI * 2);
+  ctxRadar.arc(cx, cy, r * 0.6, 0, Math.PI * 2);
+  ctxRadar.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
+  ctxRadar.stroke();
+
+  ctxRadar.beginPath();
+  ctxRadar.moveTo(cx - r, cy);
+  ctxRadar.lineTo(cx + r, cy);
+  ctxRadar.moveTo(cx, cy - r);
+  ctxRadar.lineTo(cx, cy + r);
+  ctxRadar.stroke();
+
+  radarSweepAngle = (radarSweepAngle + 0.015) % (Math.PI * 2);
+  ctxRadar.strokeStyle = "rgba(0, 255, 136, 0.4)";
+  ctxRadar.lineWidth = 2;
+  ctxRadar.beginPath();
+  ctxRadar.moveTo(cx, cy);
+  ctxRadar.lineTo(cx + Math.cos(radarSweepAngle) * r, cy + Math.sin(radarSweepAngle) * r);
+  ctxRadar.stroke();
+
+  const targets = [
+    { pt: pS, col: "#00e5ff", lbl: "S" },
+    { pt: pR, col: "#00ff88", lbl: "R" },
+    { pt: pO, col: "#ff3366", lbl: "σ" }
+  ];
+
+  targets.forEach(t => {
+    const tx = cx + (t.pt.x - (cv3d.width / 2)) * 0.6;
+    const ty = cy + (t.pt.y - (cv3d.height / 2)) * 0.6;
+    ctxRadar.fillStyle = t.col;
+    ctxRadar.beginPath();
+    ctxRadar.arc(tx, ty, 4, 0, Math.PI * 2);
+    ctxRadar.fill();
+    ctxRadar.fillStyle = "rgba(138, 153, 173, 0.8)";
+    ctxRadar.font = "8px monospace";
+    ctxRadar.fillText(t.lbl, tx + 6, ty + 3);
+  });
+}
+
+// ================================
+// Interactive 3D Spatial Projection Engine
+// ================================
+const cv3d = document.getElementById("cv-3d");
+const ctx3d = cv3d.getContext("2d");
+
+let angleX = 0.4, angleY = 0.6, zoomLevel = 0.35;
+let isDragging = false, previousMouseX = 0, previousMouseY = 0, autoRotate = true;
+let particleTrail = [];
+const MAX_TRAIL_PARTICLES = 120;
+
+function project3D(x, y, z, width, height) {
+  let cosY = Math.cos(angleY), sinY = Math.sin(angleY);
+  let x1 = x * cosY - z * sinY, z1 = x * sinY + z * cosY;
+  let cosX = Math.cos(angleX), sinX = Math.sin(angleX);
+  let y2 = y * cosX - z1 * sinX, z2 = y * sinX + z1 * cosX;
+  const scaleFactor = 230 / (230 + z2);
+  return { x: (width / 2) + x1 * scaleFactor, y: (height / 2) + y2 * scaleFactor, depth: z2 };
+}
+
+function update3DProjection(D_context, D_drift, D_scma) {
+  const w = cv3d.width, h = cv3d.height;
+  ctx3d.fillStyle = "#000";
+  ctx3d.fillRect(0, 0, w, h);
+
+  if (autoRotate) {
+    angleY += 0.003;
+    angleX = 0.3 + Math.sin(performance.now() * 0.0002) * 0.08;
+  }
+
+  const scale = Math.min(w, h) * zoomLevel;
+  const SEMANTIC_CLAMP = 0.6;
+  const breached = (D_context > SEMANTIC_CLAMP || D_drift > SEMANTIC_CLAMP || D_scma > SEMANTIC_CLAMP);
+
+  ctx3d.strokeStyle = "rgba(30, 38, 56, 0.35)";
+  ctx3d.lineWidth = 1;
+  const bounds = [-1, 1];
+  for (let x of bounds) {
+    for (let y of bounds) {
+      ctx3d.beginPath();
+      for (let i = 0; i <= 5; i++) {
+        let z = -1 + (i * 0.4);
+        let p = project3D(x * scale, y * scale, z * scale, w, h);
+        if (i === 0) ctx3d.moveTo(p.x, p.y);
+        else ctx3d.lineTo(p.x, p.y);
+      }
+      ctx3d.stroke();
+    }
+  }
+
+  const t = performance.now() * 0.0012;
+  const radius = 10 + (D_drift * 85);
+
+  const S = { x: Math.sin(t) * radius, y: Math.cos(t * 0.7) * (radius * 0.4), z: Math.cos(t) * radius };
+  const R = { x: Math.sin(t + 1.1) * (radius * 0.85), y: Math.sin(t * 0.4) * (radius * 0.6), z: Math.cos(t + 0.5) * (radius * 0.75) };
+  const O = { x: Math.cos(t * 1.0) * (radius * 0.8), y: Math.sin(t + 1.8) * (radius * 0.5), z: Math.sin(t * 0.8) * (radius * 1.0) };
+
+  if (performance.now() % 2 < 1.3) {
+    particleTrail.push({ x: S.x, y: S.y, z: S.z, color: "rgba(0, 229, 255, ", life: 1.0 });
+    particleTrail.push({ x: R.x, y: R.y, z: R.z, color: "rgba(0, 255, 136, ", life: 1.0 });
+  }
+
+  particleTrail.forEach((p, idx) => {
+    p.life -= 0.016;
+    if (p.life <= 0) { particleTrail.splice(idx, 1); return; }
+    const proj = project3D(p.x, p.y, p.z, w, h);
+    if (proj.x >= 0 && proj.x <= w && proj.y >= 0 && proj.y <= h) {
+      ctx3d.fillStyle = p.color + (breached ? p.life * 0.35 : p.life * 0.2) + ")";
+      ctx3d.fillRect(proj.x, proj.y, 2, 2);
+    }
+  });
+  if (particleTrail.length > MAX_TRAIL_PARTICLES) particleTrail.shift();
+
+  const pS = project3D(S.x, S.y, S.z, w, h);
+  const pR = project3D(R.x, R.y, R.z, w, h);
+  const pO = project3D(O.x, O.y, O.z, w, h);
+
+  ctx3d.lineWidth = 1.5;
+  ctx3d.strokeStyle = breached ? "rgba(255, 51, 102, 0.5)" : "rgba(0, 229, 255, 0.35)";
+  ctx3d.beginPath();
+  ctx3d.moveTo(pS.x, pS.y);
+  ctx3d.lineTo(pR.x, pR.y);
+  ctx3d.lineTo(pO.x, pO.y);
+  ctx3d.closePath();
+  ctx3d.stroke();
+
+  const nodes = [
+    { p: pS, color: "#00e5ff", lbl: "S" },
+    { p: pR, color: "#00ff88", lbl: "R" },
+    { p: pO, color: "#ff3366", lbl: "σ" }
+  ];
+  nodes.forEach(n => {
+    ctx3d.fillStyle = n.color;
+    ctx3d.beginPath();
+    ctx3d.arc(n.p.x, n.p.y, 4.5, 0, Math.PI * 2);
+    ctx3d.fill();
+    ctx3d.fillStyle = "#8a99ad";
+    ctx3d.font = "9px monospace";
+    ctx3d.fillText(n.lbl, n.p.x + 6, n.p.y + 2);
+  });
+
+  drawRadarScope(pS, pR, pO);
+}
+
+cv3d.addEventListener("mousedown", (e) => {
+  isDragging = true;
+  autoRotate = false;
+  previousMouseX = e.clientX;
+  previousMouseY = e.clientY;
+});
+window.addEventListener("mouseup", () => {
+  isDragging = false;
+  clearTimeout(window.rotateTimeout);
+  window.rotateTimeout = setTimeout(() => { autoRotate = true; }, 4000);
+});
+cv3d.addEventListener("mousemove", (e) => {
+  if (!isDragging) return;
+  angleY += (e.clientX - previousMouseX) * 0.01;
+  angleX += (e.clientY - previousMouseY) * 0.01;
+  angleX = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, angleX));
+  previousMouseX = e.clientX;
+  previousMouseY = e.clientY;
+});
+cv3d.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  zoomLevel = Math.max(0.15, Math.min(0.65, zoomLevel + (e.deltaY < 0 ? 0.02 : -0.02)));
+}, { passive: false });
+
+// ================================
+// ATC Substrate Runtime Integration
+// ================================
+let D_context = 0, D_drift = 0, D_scma = 0, MODE = "PI_COGNITION";
+const SEMANTIC_CLAMP = 0.6;
+
+function applyAlignment(val, clamp = SEMANTIC_CLAMP) {
+  return val > clamp ? clamp + (val - clamp) * 0.05 : val;
+}
+
+function resizeCanvas(c) {
+  if (c.width !== c.clientWidth || c.height !== c.clientHeight) {
+    c.width = c.clientWidth;
+    c.height = c.clientHeight;
+  }
+}
+
+function updateTransponderTable() {
+  const tbody = document.getElementById("transponder-tbody");
+  const targets = [
+    { id: "DSLO-902", mode: MODE === "PI_COGNITION" ? "Π_coherence" : "Legacy", sep: D_context * 0.9, traj: D_drift * 0.95 },
+    { id: "DISCO-07", mode: MODE === "PI_COGNITION" ? "Π_coherence" : "Legacy", sep: D_context * 1.1, traj: D_drift * 0.82 }
+  ];
+  tbody.innerHTML = "";
+  targets.forEach(t => {
+    const isTargetBreached = t.sep > SEMANTIC_CLAMP || t.traj > SEMANTIC_CLAMP;
+    const tr = document.createElement("tr");
+    if (isTargetBreached) tr.className = "alert-row";
+    tr.innerHTML = `
+      <td>${t.id}</td>
+      <td>${t.mode}</td>
+      <td>${t.sep.toFixed(3)}</td>
+      <td>${t.traj.toFixed(3)}</td>
+      <td>${isTargetBreached ? "BREACH" : "NOMINAL"}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateATCRuntime() {
+  [cvOscilloscope, cvRadar, cv3d].forEach(resizeCanvas);
+
+  const tCtx = parseFloat(document.getElementById("inj-context").value);
+  const tDrift = parseFloat(document.getElementById("inj-drift").value);
+  const tScma = parseFloat(document.getElementById("inj-scma").value);
+
+  if (MODE === "CLASSICAL") {
+    D_context += (tCtx - D_context) * 0.1 + (Math.random() - 0.5) * 0.01;
+    D_drift += (tDrift - D_drift) * 0.1 + (Math.random() - 0.5) * 0.01;
+    D_scma += (tScma - D_scma) * 0.1 + (Math.random() - 0.5) * 0.01;
+  } else {
+    D_context += (applyAlignment(tCtx) - D_context) * 0.1;
+    D_drift += (applyAlignment(tDrift) - D_drift) * 0.1;
+    D_scma += (applyAlignment(tScma) - D_scma) * 0.1;
+  }
+
+  D_context = Math.max(0, Math.min(1.2, D_context));
+  D_drift = Math.max(0, Math.min(1.2, D_drift));
+  D_scma = Math.max(0, Math.min(1.2, D_scma));
+
+  document.getElementById("m-context").innerText = D_context.toFixed(4);
+  document.getElementById("m-drift").innerText = D_drift.toFixed(4);
+  document.getElementById("m-scma").innerText = D_scma.toFixed(4);
+
+  const breached = D_context > SEMANTIC_CLAMP || D_drift > SEMANTIC_CLAMP || D_scma > SEMANTIC_CLAMP;
+
+  const status = document.getElementById("cog-status");
+  status.className = breached ? "status-badge breach" : "status-badge";
+  status.innerText = breached ? "S = R = σ (BREACH)" : "S = R = σ (NOMINAL)";
+
+  const fbInv = document.getElementById("fb-invariant");
+  fbInv.innerText = breached ? "BREACH" : "NOMINAL";
+  fbInv.style.color = breached ? "var(--danger)" : "var(--green)";
+
+  const rootEl = document.documentElement;
+  rootEl.style.setProperty('--panel-border', breached ? 'rgba(255, 51, 102, 0.4)' : '#1e2638');
+  rootEl.style.setProperty('--panel-glow', breached ? 'rgba(255, 51, 102, 0.08)' : 'rgba(0, 229, 255, 0.03)');
+
+  update3DProjection(D_context, D_drift, D_scma);
+  updateTransponderTable();
+  drawOscilloscopeView(D_context, D_drift, D_scma);
+  handleAudioSynthesis(breached, Math.max(D_context, D_drift, D_scma));
+
+  document.getElementById("jsonld-out").innerText = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    "dslo:nodeIdentifier": "SM-DSLO-80041",
+    "dslo:masterInvariant": "S = R = σ",
+    "dslo:airspaceMetrics": {
+      "boundaryCompression": parseFloat(D_context.toFixed(4)),
+      "trajectoryShear": parseFloat(D_drift.toFixed(4)),
+      "scmaLoad": parseFloat(D_scma.toFixed(4))
+    },
+    "dslo:operatorMode": MODE,
+    "dslo:systemStatus": breached ? "BREACH_STATE" : "NOMINAL_STATE"
+  }, null, 2);
+
+  requestAnimationFrame(updateATCRuntime);
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  const btnPi = document.getElementById("mode-pi");
+  const btnClassical = document.getElementById("mode-classical");
+  const audioToggle = document.getElementById("audio-toggle");
+
+  btnPi.onclick = () => {
+    MODE = "PI_COGNITION";
+    btnPi.classList.add("active");
+    btnClassical.classList.remove("active");
+  };
+
+  btnClassical.onclick = () => {
+    MODE = "CLASSICAL";
+    btnClassical.classList.add("active");
+    btnPi.classList.remove("active");
+  };
+
+  audioToggle.onclick = () => {
+    if (!audioCtx) {
+      initAudioEngine();
+    } else if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+      audioToggle.innerText = "Beacon Active";
+      audioToggle.classList.add("enabled");
+    } else if (audioCtx.state === 'running') {
+      audioCtx.suspend();
+      audioToggle.innerText = "Beacon Muted";
+      audioToggle.classList.remove("enabled");
+    }
+  };
+
+  updateATCRuntime();
+});
+</script>
+
+</body>
+</html>
 
