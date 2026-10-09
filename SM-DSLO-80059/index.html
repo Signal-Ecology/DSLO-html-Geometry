@@ -1,1 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SM-DSLO-80059: Physical Limits of Compute-First AI</title>
+  <style>
+    :root {
+      --bg: #05070a;
+      --card: #10141d;
+      --accent: #00e5ff;
+      --accent-soft: rgba(0, 229, 255, 0.18);
+      --danger: #ff3366;
+      --danger-soft: rgba(255, 51, 102, 0.18);
+      --text: #e0e6ed;
+      --subtext: #8a99ad;
+      --border: #1e2638;
+      --green: #00ff88;
+      --amber: #ffcc33;
+      --panel-glow: rgba(0, 229, 255, 0.04);
+      --panel-border: var(--border);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
+    body { background: var(--bg); color: var(--text); padding: 16px; font-size: 13px; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      transition: border-color 0.4s ease;
+    }
+
+    h1 { font-size: 16px; color: var(--accent); letter-spacing: 1px; }
+    .subhead { font-size: 11px; color: var(--subtext); margin-top: 2px; }
+    .tagline { font-size: 9px; color: var(--subtext); margin-top: 2px; }
+
+    .badge-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .status-badge {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid var(--green);
+      color: var(--green);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    .status-badge.breach {
+      background: rgba(255, 51, 102, 0.1);
+      border-color: var(--danger);
+      color: var(--danger);
+      animation: alert-pulse 1.5s infinite alternate;
+    }
+
+    .status-badge.warn {
+      background: rgba(255, 204, 51, 0.08);
+      border-color: var(--amber);
+      color: var(--amber);
+    }
+
+    .grid-root {
+      display: grid;
+      grid-template-columns: 1.2fr 1.1fr 1.3fr;
+      gap: 12px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: inset 0 0 20px var(--panel-glow);
+      transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s ease;
+    }
+
+    .surface-card {
+      background: rgba(16, 20, 29, 0.7);
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
+      padding: 8px 10px;
+      margin-bottom: 4px;
+      transition: border-color 0.4s ease, background 0.4s ease;
+    }
+
+    .surface-title {
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+
+    .surface-title span.tag {
+      font-size: 9px;
+      color: var(--subtext);
+      text-transform: none;
+      margin-left: 4px;
+    }
+
+    .text-row {
+      font-size: 10px;
+      color: var(--subtext);
+      margin: 2px 0;
+    }
+
+    .text-row b { color: var(--text); }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .mode-btn {
+      background: #10141d;
+      border: 1px solid var(--panel-border);
+      color: var(--accent);
+      padding: 6px 8px;
+      font-size: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+      border-radius: 4px;
+    }
+
+    .mode-btn:hover { background: #0d1118; border-color: var(--accent); }
+    .mode-btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    .mode-btn.scenario {
+      color: var(--subtext);
+      border-style: dashed;
+    }
+
+    .mode-btn.scenario.active {
+      color: var(--amber);
+      border-color: var(--amber);
+      background: rgba(255, 204, 51, 0.08);
+    }
+
+    canvas {
+      width: 100%;
+      height: 120px;
+      background: #000;
+      border-radius: 4px;
+      border: 1px solid var(--panel-border);
+      display: block;
+      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    canvas.projection-3d { height: 210px; cursor: grab; }
+    canvas.projection-3d:active { cursor: grabbing; }
+    canvas.collapse-scope { height: 120px; }
+    canvas.metric-scope { height: 80px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+      margin-top: 4px;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 4px 6px;
+      text-align: left;
+    }
+
+    th {
+      background: #0b1118;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    tr.alert-row {
+      color: var(--danger);
+      background: rgba(255, 51, 102, 0.05);
+    }
+
+    tr.warn-row {
+      color: var(--amber);
+      background: rgba(255, 204, 51, 0.05);
+    }
+
+    pre {
+      font-size: 10px;
+      color: var(--green);
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 150px;
+      overflow-y: auto;
+      background: #05070a;
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid var(--panel-border);
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--subtext);
+      margin: 2px 0;
+    }
+
+    .metric-row span:last-child {
+      color: var(--text);
+      font-weight: bold;
+    }
+
+    .slider-group {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .slider-container label {
+      font-size: 9px;
+      color: var(--subtext);
+      width: 140px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .slider-container input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent);
+      cursor: pointer;
+      height: 4px;
+    }
+
+    .slider-container span.value {
+      font-size: 9px;
+      color: var(--text);
+      width: 40px;
+      text-align: right;
+    }
+
+    .small-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    @keyframes alert-pulse {
+      from { box-shadow: 0 0 4px rgba(255, 51, 102, 0.2); }
+      to { box-shadow: 0 0 12px rgba(255, 51, 102, 0.6); }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>SM-DSLO-80059: Physical Limits of Compute-First AI</h1>
+    <div class="subhead">
+      Node: SM-DSLO-80059 · Series: DSLO Substrate Cluster · Ontology: Compute-First_AI_Collapse_Physics · Version: v0.8 · 10.5281/zenodo.22648418 
+    </div>
+    <div class="tagline">
+      Substrate-level analysis · Meaning density geometry · Public-safe surface · No operational controls.
+    </div>
+  </div>
+  <div>
+    <div class="badge-row">
+      <div class="status-badge">S = R = σ (Invariant Active)</div>
+      <div id="cog-status" class="status-badge">Meaning Density: NOMINAL</div>
+      <div id="mode-badge" class="status-badge warn">Mode: Substrate-First</div>
+      <div id="collapse-badge" class="status-badge">Collapse Surface: Thermodynamic &gt; Hardware &gt; Semantic</div>
+    </div>
+  </div>
+</header>
+
+<div class="grid-root">
+  <!-- LEFT PANEL: Core Model & Controls -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">MEANING DENSITY CORE MODEL <span class="tag">(M = Isemantic / E)</span></div>
+      <div class="text-row">
+        <b>Isemantic:</b> invariant-aligned meaning (anchoring, fidelity, locality, lawful transitions)<br>
+        <b>E:</b> energetic cost (thermodynamic load, switching density, entropy)<br>
+        Meaning density collapses when drift velocity exceeds correction capacity.
+      </div>
+      <div class="btn-row">
+        <button class="mode-btn active" id="mode-substrate">Substrate-First (DSLO geometry)</button>
+        <button class="mode-btn" id="mode-compute">Compute-First (statistical scaling)</button>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">FAILURE MODE PROFILE SELECTOR <span class="tag">(Synthetic)</span></div>
+      <div class="btn-row">
+        <button class="mode-btn scenario active" data-scenario="baseline" id="scn-baseline">Baseline Load</button>
+        <button class="mode-btn scenario" data-scenario="thermo" id="scn-thermo">Thermodynamic Stress</button>
+        <button class="mode-btn scenario" data-scenario="hardware" id="scn-hardware">Hardware Decay</button>
+        <button class="mode-btn scenario" data-scenario="semantic" id="scn-semantic">Semantic Collapse</button>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">SEMANTIC MUTATION VELOCITY SCOPE</div>
+      <canvas id="cv-mutation" class="metric-scope"></canvas>
+      <div class="text-row">
+        Synthetic mutation velocity trace; amplitude rises with entropy, drift, and synthetic ecology exposure.
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER PANEL: 3D Collapse Geometry & Distortions -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">3D COLLAPSE GEOMETRY TENSOR (Thermo–Hardware–Semantic)</div>
+      <div class="text-row" style="color: var(--accent); font-size:9px;">
+        Drag to rotate · Scroll to zoom · Tensor responds to energy density, reliability stress, and meaning drift.
+      </div>
+      <canvas id="cv-3d" class="projection-3d"></canvas>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">COLLAPSE DISTORTION INJECTION</div>
+      <div class="slider-group">
+        <div class="slider-container">
+          <label title="Thermodynamic energy density / heat load">E_density (Thermo)</label>
+          <input type="range" id="inj-thermo" min="0" max="1.2" step="0.01" value="0.12">
+          <span class="value" id="val-thermo">0.12</span>
+        </div>
+        <div class="slider-container">
+          <label title="Semiconductor reliability decay / failure stress">R_hardware (Reliability)</label>
+          <input type="range" id="inj-hardware" min="0" max="1.2" step="0.01" value="0.18">
+          <span class="value" id="val-hardware">0.18</span>
+        </div>
+        <div class="slider-container">
+          <label title="Semantic drift / mutation velocity">D_semantic (Drift)</label>
+          <input type="range" id="inj-semantic" min="0" max="1.2" step="0.01" value="0.22">
+          <span class="value" id="val-semantic">0.22</span>
+        </div>
+      </div>
+      <div class="text-row">
+        Sliders inject synthetic collapse stress into the tensor; substrate-first mode clamps excursions above invariant thresholds.
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">INVARIANT SNAPSHOT (Physical + Semantic)</div>
+      <div class="small-grid">
+        <div>
+          <div class="metric-row"><span>P1: Energy Density Bound</span><span id="inv-P1">N/A</span></div>
+          <div class="metric-row"><span>P2: Thermal Stability Bound</span><span id="inv-P2">N/A</span></div>
+          <div class="metric-row"><span>P3: Reliability Bound</span><span id="inv-P3">N/A</span></div>
+        </div>
+        <div>
+          <div class="metric-row"><span>S1: Drift Bound</span><span id="inv-S1">N/A</span></div>
+          <div class="metric-row"><span>S2: Locality Enforcement</span><span id="inv-S2">N/A</span></div>
+          <div class="metric-row"><span>S3/S4: Lawful / Zero-Velocity</span><span id="inv-S34">N/A</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL: Metrics, Restoration Operators, JSON-LD -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">UNIFIED MEANING DENSITY METRICS</div>
+      <div class="metric-row"><span>Meaning density M</span><span id="m-density">N/A</span></div>
+      <div class="metric-row"><span>Invariant-aligned meaning Isemantic</span><span id="m-Isemantic">N/A</span></div>
+      <div class="metric-row"><span>Energetic cost E</span><span id="m-energy">N/A</span></div>
+      <div class="metric-row" style="border-top: 1px solid #1e2638; padding-top: 2px;">
+        <span>System collapse state</span><span id="fb-collapse">STABLE</span>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">RESTORATION OPERATORS REGISTRY</div>
+      <div style="max-height: 120px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px;">
+        <table>
+          <thead>
+          <tr>
+            <th>Operator</th>
+            <th>Surface Reversed</th>
+            <th>Status</th>
+          </tr>
+          </thead>
+          <tbody id="operator-tbody">
+          <!-- Populated by runtime -->
+          </tbody>
+        </table>
+      </div>
+      <div class="text-row">
+        Geometry realignment, invariant recompilation, drift masks, heartbeat stabilization, and locality reinforcement.
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">JSON-LD PHYSICAL LIMITS MANIFEST (.schema)</div>
+      <pre id="jsonld-out">Initializing physical limits manifest...</pre>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">RUNTIME DIAGNOSTIC TRACE</div>
+      <pre id="diag-out">Runtime trace will appear here as the collapse tensor evolves.</pre>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ================================
+  // 3D Collapse Geometry Tensor
+  // ================================
+  const cv3d = document.getElementById("cv-3d");
+  const ctx3d = cv3d.getContext("2d");
+
+  let angleX = 0.45, angleY = 0.55, zoomLevel = 0.38;
+  let isDragging = false, previousMouseX = 0, previousMouseY = 0, autoRotate = true;
+  let particleTrail = [];
+  const MAX_TRAIL_PARTICLES = 120;
+
+  function project3D(x, y, z, width, height) {
+    let cosY = Math.cos(angleY), sinY = Math.sin(angleY);
+    let x1 = x * cosY - z * sinY, z1 = x * sinY + z * cosY;
+    let cosX = Math.cos(angleX), sinX = Math.sin(angleX);
+    let y2 = y * cosX - z1 * sinX, z2 = y * sinX + z1 * cosX;
+    const scaleFactor = 230 / (230 + z2);
+    return {
+      x: (width / 2) + x1 * scaleFactor,
+      y: (height / 2) + y2 * scaleFactor,
+      depth: z2
+    };
+  }
+
+  let D_thermo = 0, D_hardware = 0, D_semantic = 0;
+  const SEMANTIC_CLAMP = 0.6;
+  let MODE = "SUBSTRATE_FIRST";
+  let currentScenario = "baseline";
+
+  function resizeCanvas(c) {
+    if (c.width !== c.clientWidth || c.height !== c.clientHeight) {
+      c.width = c.clientWidth;
+      c.height = c.clientHeight;
+    }
+  }
+
+  function scenarioOffsets() {
+    switch (currentScenario) {
+      case "thermo":
+        return { thermo: 0.25, hardware: 0.10, semantic: 0.08 };
+      case "hardware":
+        return { thermo: 0.18, hardware: 0.28, semantic: 0.12 };
+      case "semantic":
+        return { thermo: 0.14, hardware: 0.16, semantic: 0.32 };
+      default:
+        return { thermo: 0.10, hardware: 0.12, semantic: 0.10 };
+    }
+  }
+
+  function applyAlignment(val, clamp = SEMANTIC_CLAMP) {
+    return val > clamp ? clamp + (val - clamp) * 0.05 : val;
+  }
+
+  function update3DProjection() {
+    const w = cv3d.width, h = cv3d.height;
+    ctx3d.fillStyle = "#000";
+    ctx3d.fillRect(0, 0, w, h);
+
+    if (autoRotate) {
+      angleY += 0.003;
+      angleX = 0.35 + Math.sin(performance.now() * 0.00025) * 0.09;
+    }
+
+    const scale = Math.min(w, h) * zoomLevel;
+    const breached = D_semantic > SEMANTIC_CLAMP || D_thermo > SEMANTIC_CLAMP || D_hardware > SEMANTIC_CLAMP;
+
+    ctx3d.strokeStyle = "rgba(30, 38, 56, 0.4)";
+    ctx3d.lineWidth = 1;
+
+    const bounds = [-1, 1];
+    for (let x of bounds) {
+      for (let y of bounds) {
+        ctx3d.beginPath();
+        for (let i = 0; i <= 5; i++) {
+          let z = -1 + (i * 0.4);
+          let p = project3D(x * scale, y * scale, z * scale, w, h);
+          if (i === 0) ctx3d.moveTo(p.x, p.y);
+          else ctx3d.lineTo(p.x, p.y);
+        }
+        ctx3d.stroke();
+      }
+    }
+
+    const t = performance.now() * 0.0015;
+    const radius = 10 + (D_thermo * 80);
+
+    const T = { // thermodynamic
+      x: Math.sin(t) * radius,
+      y: Math.cos(t * 0.8) * (radius * 0.5),
+      z: Math.cos(t) * radius
+    };
+    const H = { // hardware
+      x: Math.sin(t + 1.3) * (radius * 0.9),
+      y: Math.sin(t * 0.5) * (radius * 0.7),
+      z: Math.cos(t + 0.6) * (radius * 0.8)
+    };
+    const S = { // semantic
+      x: Math.cos(t * 1.2) * (radius * 0.85),
+      y: Math.sin(t + 1.5) * (radius * 0.6),
+      z: Math.sin(t * 0.9) * (radius * 0.95)
+    };
+
+    if (performance.now() % 2 < 1.3) {
+      particleTrail.push({ x: T.x, y: T.y, z: T.z, color: "rgba(0, 229, 255, ", life: 1.0 });
+      particleTrail.push({ x: H.x, y: H.y, z: H.z, color: "rgba(0, 255, 136, ", life: 1.0 });
+    }
+
+    particleTrail.forEach((p, idx) => {
+      p.life -= 0.02;
+      if (p.life <= 0) { particleTrail.splice(idx, 1); return; }
+      const proj = project3D(p.x, p.y, p.z, w, h);
+      if (proj.x >= 0 && proj.x <= w && proj.y >= 0 && proj.y <= h) {
+        ctx3d.fillStyle = p.color + (breached ? p.life * 0.4 : p.life * 0.2) + ")";
+        ctx3d.fillRect(proj.x, proj.y, 2, 2);
+      }
+    });
+
+    if (particleTrail.length > MAX_TRAIL_PARTICLES) particleTrail.shift();
+
+    const pT = project3D(T.x, T.y, T.z, w, h);
+    const pH = project3D(H.x, H.y, H.z, w, h);
+    const pS = project3D(S.x, S.y, S.z, w, h);
+
+    ctx3d.lineWidth = 1.5;
+    ctx3d.strokeStyle = breached ? "rgba(255, 51, 102, 0.6)" : "rgba(0, 229, 255, 0.4)";
+    ctx3d.beginPath();
+    ctx3d.moveTo(pT.x, pT.y);
+    ctx3d.lineTo(pH.x, pH.y);
+    ctx3d.lineTo(pS.x, pS.y);
+    ctx3d.closePath();
+    ctx3d.stroke();
+
+    const nodes = [
+      { p: pT, color: "#00e5ff", lbl: "Thermo" },
+      { p: pH, color: "#00ff88", lbl: "Hardware" },
+      { p: pS, color: "#ff3366", lbl: "Semantic" }
+    ];
+
+    nodes.forEach(n => {
+      ctx3d.fillStyle = n.color;
+      ctx3d.beginPath();
+      ctx3d.arc(n.p.x, n.p.y, 5, 0, Math.PI * 2);
+      ctx3d.fill();
+      ctx3d.fillStyle = "#8a99ad";
+      ctx3d.font = "9px monospace";
+      ctx3d.fillText(n.lbl, n.p.x + 6, n.p.y + 2);
+    });
+
+    document.getElementById("inv-P1").innerText = D_thermo.toFixed(3);
+    document.getElementById("inv-P2").innerText = (D_thermo + D_hardware).toFixed(3);
+    document.getElementById("inv-P3").innerText = D_hardware.toFixed(3);
+    document.getElementById("inv-S1").innerText = D_semantic.toFixed(3);
+    document.getElementById("inv-S2").innerText = (1.0 - Math.min(D_semantic, 1.0)).toFixed(3);
+    document.getElementById("inv-S34").innerText = (Math.max(D_semantic - SEMANTIC_CLAMP, 0)).toFixed(3);
+  }
+
+  // ================================
+  // Mutation Scope
+  // ================================
+  const cvMutation = document.getElementById("cv-mutation");
+  const ctxMutation = cvMutation.getContext("2d");
+
+  function drawMutationScope() {
+    const w = cvMutation.width, h = cvMutation.height;
+    ctxMutation.fillStyle = "#000";
+    ctxMutation.fillRect(0, 0, w, h);
+
+    const breached = D_semantic > SEMANTIC_CLAMP;
+    ctxMutation.strokeStyle = breached ? "var(--danger)" : "var(--accent)";
+    ctxMutation.lineWidth = 1.5;
+
+    ctxMutation.beginPath();
+    const steps = 160;
+    let xStep = w / steps;
+    let x = 0;
+
+    for (let i = 0; i <= steps; i++) {
+      const t = (performance.now() * 0.001) + i * 0.08;
+      const base = Math.sin(t) * (10 + D_semantic * 40);
+      const entropyWave = Math.cos(t * (1.2 + D_thermo)) * (6 + D_thermo * 20);
+      const noiseWave = Math.sin(t * 2.4) * (D_semantic * 18);
+      const y = h / 2 + base + entropyWave + noiseWave;
+
+      if (i === 0) ctxMutation.moveTo(x, y);
+      else ctxMutation.lineTo(x, y);
+      x += xStep;
+    }
+    ctxMutation.stroke();
+  }
+
+  // ================================
+  // Restoration Operators Table
+  // ================================
+  function updateOperatorTable(breached, nearClamp) {
+    const tbody = document.getElementById("operator-tbody");
+    tbody.innerHTML = "";
+
+    const operators = [
+      { id: "O1", name: "Geometry Plane Realignment", surface: "Semantic drift / locality collapse", active: true },
+      { id: "O2", name: "Invariant Recompilation", surface: "Meaning density collapse", active: breached || nearClamp },
+      { id: "O3", name: "Drift Mask Enforcement", surface: "Mutation velocity runaway", active: breached },
+      { id: "O4", name: "Temporal Heartbeat Stabilization", surface: "Temporal discontinuity", active: nearClamp || breached },
+      { id: "O5", name: "Meaning Locality Reinforcement", surface: "Locality collapse / hallucination physics", active: breached }
+    ];
+
+    operators.forEach(op => {
+      const tr = document.createElement("tr");
+      if (op.active && breached) tr.className = "alert-row";
+      else if (op.active && nearClamp) tr.className = "warn-row";
+
+      tr.innerHTML = `
+        <td>${op.id}</td>
+        <td>${op.surface}</td>
+        <td>${op.active ? (breached ? "ACTIVE (RESTORING)" : "ENGAGED") : "IDLE"}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ================================
+  // Runtime Loop
+  // ================================
+  function updatePhysicalRuntime() {
+    [cv3d, cvMutation].forEach(resizeCanvas);
+
+    const tThermo = parseFloat(document.getElementById("inj-thermo").value);
+    const tHardware = parseFloat(document.getElementById("inj-hardware").value);
+    const tSemantic = parseFloat(document.getElementById("inj-semantic").value);
+    const offsets = scenarioOffsets();
+
+    const targetThermo = tThermo + offsets.thermo;
+    const targetHardware = tHardware + offsets.hardware;
+    const targetSemantic = tSemantic + offsets.semantic;
+
+    if (MODE === "COMPUTE_FIRST") {
+      D_thermo += (targetThermo - D_thermo) * 0.12 + (Math.random() - 0.5) * 0.01;
+      D_hardware += (targetHardware - D_hardware) * 0.12 + (Math.random() - 0.5) * 0.01;
+      D_semantic += (targetSemantic - D_semantic) * 0.12 + (Math.random() - 0.5) * 0.01;
+    } else {
+      D_thermo += (applyAlignment(targetThermo) - D_thermo) * 0.12;
+      D_hardware += (applyAlignment(targetHardware) - D_hardware) * 0.12;
+      D_semantic += (applyAlignment(targetSemantic) - D_semantic) * 0.12;
+    }
+
+    D_thermo = Math.max(0, Math.min(1.2, D_thermo));
+    D_hardware = Math.max(0, Math.min(1.2, D_hardware));
+    D_semantic = Math.max(0, Math.min(1.2, D_semantic));
+
+    const Isemantic = Math.max(0, 1.0 - D_semantic);
+    const E = D_thermo + D_hardware + 0.1;
+    const M = Isemantic / Math.max(E, 0.05);
+
+    document.getElementById("m-density").innerText = M.toFixed(4);
+    document.getElementById("m-Isemantic").innerText = Isemantic.toFixed(4);
+    document.getElementById("m-energy").innerText = E.toFixed(4);
+
+    const breached = D_semantic > SEMANTIC_CLAMP || D_thermo > SEMANTIC_CLAMP || D_hardware > SEMANTIC_CLAMP;
+    const nearClamp = !breached && (D_semantic > SEMANTIC_CLAMP * 0.85 || D_thermo > SEMANTIC_CLAMP * 0.85 || D_hardware > SEMANTIC_CLAMP * 0.85);
+
+    const status = document.getElementById("cog-status");
+    status.className = breached ? "status-badge breach" : (nearClamp ? "status-badge warn" : "status-badge");
+    status.innerText = breached ? "Meaning Density: COLLAPSE" : (nearClamp ? "Meaning Density: WATCH" : "Meaning Density: NOMINAL");
+
+    const fb = document.getElementById("fb-collapse");
+    fb.innerText = breached ? "COLLAPSE" : (nearClamp ? "ELEVATED" : "STABLE");
+    fb.style.color = breached ? "var(--danger)" : (nearClamp ? "var(--amber)" : "var(--green)");
+
+    const rootEl = document.documentElement;
+    rootEl.style.setProperty('--panel-border', breached ? 'rgba(255, 51, 102, 0.4)' : '#1e2638');
+    rootEl.style.setProperty('--panel-glow', breached ? 'rgba(255, 51, 102, 0.08)' : 'rgba(0, 229, 255, 0.04)');
+
+    update3DProjection();
+    drawMutationScope();
+    updateOperatorTable(breached, nearClamp);
+
+    document.getElementById("jsonld-out").innerText = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "dslo:nodeIdentifier": "SM-DSLO-80059",
+      "dslo:masterInvariant": "MeaningDensityGeometry",
+      "dslo:physicalLimitsMetrics": {
+        "thermodynamicStress": parseFloat(D_thermo.toFixed(4)),
+        "hardwareReliabilityStress": parseFloat(D_hardware.toFixed(4)),
+        "semanticDriftStress": parseFloat(D_semantic.toFixed(4)),
+        "meaningDensity": parseFloat(M.toFixed(4))
+      },
+      "dslo:operatorMode": MODE,
+      "dslo:failureScenario": currentScenario,
+      "dslo:systemStatus": breached ? "COLLAPSE_SURFACE" : (nearClamp ? "ELEVATED_RISK" : "STABLE_SUBSTRATE")
+    }, null, 2);
+
+    document.getElementById("diag-out").innerText =
+      "Runtime tick: " + performance.now().toFixed(0) +
+      "\nMODE: " + MODE +
+      "\nScenario: " + currentScenario +
+      "\nThermodynamic stress: " + D_thermo.toFixed(4) +
+      "\nHardware reliability stress: " + D_hardware.toFixed(4) +
+      "\nSemantic drift stress: " + D_semantic.toFixed(4) +
+      "\nMeaning density M: " + M.toFixed(4);
+
+    requestAnimationFrame(updatePhysicalRuntime);
+  }
+
+  // ================================
+  // UI Wiring
+  // ================================
+  window.addEventListener("DOMContentLoaded", () => {
+    const btnSubstrate = document.getElementById("mode-substrate");
+    const btnCompute = document.getElementById("mode-compute");
+    const modeBadge = document.getElementById("mode-badge");
+    const collapseBadge = document.getElementById("collapse-badge");
+
+    btnSubstrate.onclick = () => {
+      MODE = "SUBSTRATE_FIRST";
+      btnSubstrate.classList.add("active");
+      btnCompute.classList.remove("active");
+      modeBadge.innerText = "Mode: Substrate-First (DSLO)";
+      modeBadge.className = "status-badge warn";
+    };
+
+    btnCompute.onclick = () => {
+      MODE = "COMPUTE_FIRST";
+      btnCompute.classList.add("active");
+      btnSubstrate.classList.remove("active");
+      modeBadge.innerText = "Mode: Compute-First Scaling";
+      modeBadge.className = "status-badge";
+    };
+
+    const scenarioBadge = collapseBadge;
+    const scenarioButtons = document.querySelectorAll(".mode-btn.scenario");
+    scenarioButtons.forEach(btn => {
+      btn.onclick = () => {
+        scenarioButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentScenario = btn.getAttribute("data-scenario");
+        scenarioBadge.innerText = "Collapse Surface: " + btn.innerText;
+      };
+    });
+
+    const sliders = [
+      { id: "inj-thermo", valId: "val-thermo" },
+      { id: "inj-hardware", valId: "val-hardware" },
+      { id: "inj-semantic", valId: "val-semantic" }
+    ];
+
+    sliders.forEach(s => {
+      const el = document.getElementById(s.id);
+      const valEl = document.getElementById(s.valId);
+      el.addEventListener("input", () => {
+        valEl.innerText = parseFloat(el.value).toFixed(2);
+      });
+    });
+
+    cv3d.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      autoRotate = false;
+      previousMouseX = e.clientX;
+      previousMouseY = e.clientY;
+    });
+
+    window.addEventListener("mouseup", () => {
+      isDragging = false;
+      clearTimeout(window.rotateTimeout);
+      window.rotateTimeout = setTimeout(() => { autoRotate = true; }, 4000);
+    });
+
+    cv3d.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+      angleY += (e.clientX - previousMouseX) * 0.01;
+      angleX += (e.clientY - previousMouseY) * 0.01;
+      angleX = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, angleX));
+      previousMouseX = e.clientX;
+      previousMouseY = e.clientY;
+    });
+
+    cv3d.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      zoomLevel = Math.max(0.15, Math.min(0.65, zoomLevel + (e.deltaY < 0 ? 0.02 : -0.02)));
+    }, { passive: false });
+
+    updatePhysicalRuntime();
+  });
+</script>
+</body>
+</html>
 
