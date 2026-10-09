@@ -1,1 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SM-DSLO-90070: Sovereign Cognitive Substrate Dashboard</title>
+  <style>
+    :root {
+      --bg: #05070a;
+      --card: #10141d;
+      --accent: #00e5ff;
+      --danger: #ff3366;
+      --text: #e0e6ed;
+      --subtext: #8a99ad;
+      --border: #1e2638;
+      --green: #00ff88;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
+    body { background: var(--bg); color: var(--text); padding: 16px; font-size: 13px; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 16px; color: var(--accent); letter-spacing: 1px; }
+    .subhead { font-size: 11px; color: var(--subtext); }
+    .status-badge {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid var(--green);
+      color: var(--green);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    .status-badge.breach {
+      background: rgba(255, 51, 102, 0.1);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+    .grid-root {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1.2fr;
+      gap: 12px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .surface-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+    }
+    .surface-title {
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+    .text-row {
+      font-size: 10px;
+      color: var(--subtext);
+      margin: 2px 0;
+    }
+    .text-row b { color: var(--text); }
+    .btn-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .mode-btn {
+      background: #10141d;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      padding: 4px 8px;
+      font-size: 10px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .mode-btn:hover { background: #0d1118; }
+    canvas {
+      width: 100%;
+      height: 120px;
+      background: #000;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      display: block;
+    }
+    pre {
+      font-size: 10px;
+      color: var(--green);
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 160px;
+      overflow-y: auto;
+      background: #05070a;
+      padding: 6px;
+      border-radius: 4px;
+    }
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--subtext);
+      margin: 2px 0;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>SM-DSLO-90070: Sovereign Cognitive Substrate Dashboard</h1>
+    <div class="subhead">
+      Node: SM-DSLO-90070 · Root: SM-DSLO-90060 · Metadata: SM-DSLO-90061 · DOI: 10.5281/zenodo.23001015
+    </div>
+  </div>
+  <div id="cog-status" class="status-badge">S = R = σ (NOMINAL)</div>
+</header>
+
+<h2 style="font-size:13px; color:var(--accent); margin-bottom:8px;">
+  DSLO Sovereign Cognitive Substrate & Autonomous Alignment
+</h2>
+
+<div class="grid-root">
+  <!-- LEFT PANEL: Operator, Lineage, Atlas -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">COGNITIVE ALIGNMENT OPERATOR SELECTION</div>
+      <div class="text-row">Select active cognitive substrate mode</div>
+      <div class="btn-row">
+        <button class="mode-btn" id="mode-pi">Π_cognition Active (S = R = σ)</button>
+        <button class="mode-btn" id="mode-classical">Classical Transformer</button>
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">LINEAGE & METADATA (SM-DSLO-90070)</div>
+      <div class="text-row"><b>Root Lineage:</b> SM-DSLO-90060 (Meaning Physics)</div>
+      <div class="text-row"><b>Metadata Root:</b> SM-DSLO-90061</div>
+      <div class="text-row"><b>Node Identifier:</b> DSLO-COGNITIVE-SUBSTRATE-v0.9</div>
+      <div class="text-row"><b>Ontology Class:</b> Cognitive_Substrate_Geometry</div>
+      <div class="text-row"><b>Registry Anchor:</b> CAPABILITY_GRAPH_COGNITIVE_MANIFOLD</div>
+      <div class="text-row"><b>Exposure Level:</b> MODE_A_PUBLIC_SAFE</div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">SUBSTRATE ATLAS (90070 EXTENSION)</div>
+      <div class="text-row">Root: SM-DSLO-90060 → Node: SM-DSLO-90070</div>
+      <div class="text-row">HasPart: SM-DSLO-90062 (Runtime Substrate)</div>
+      <div class="text-row">HasPart: SM-DSLO-90063 (Sovereign Lunar Node)</div>
+      <div class="text-row" style="margin-top:6px;"><b>Sovereign Cognitive Operators:</b></div>
+      <div class="text-row">· Π_cognition (Master Cognitive Alignment)</div>
+      <div class="text-row">· W_context (Non-Collapsing Context Geometry)</div>
+      <div class="text-row">· D_cognition(t) (Drift Metric)</div>
+      <div class="text-row">· T_drift (Cognitive Drift-Detection Twin)</div>
+      <div class="text-row">· Ω_SCMA-F (Deterministic Cognitive State Machine)</div>
+    </div>
+  </div>
+
+ <!-- CENTER PANEL: Cognitive manifolds -->
+<div class="panel">
+  <div class="surface-card">
+    <div class="surface-title">COGNITIVE SUBSTRATE MANIFOLDS</div>
+
+    <div class="text-row"><b>1. Non-Collapsing Context Geometry (W_context)</b></div>
+    <canvas id="cv-context"></canvas>
+
+    <div class="text-row" style="margin-top:6px;"><b>2. Cognitive Drift-Detection Twin (T_drift)</b></div>
+    <canvas id="cv-drift"></canvas>
+
+    <div class="text-row" style="margin-top:6px;"><b>3. SCMA-F Cognitive Transitions</b></div>
+    <canvas id="cv-scma"></canvas>
+
+    <div class="text-row" style="margin-top:6px;"><b>4. Capability-Graph Traversal (Interactive)</b></div>
+    <canvas id="cv-cap"></canvas>
+
+    <div class="metric-row" style="margin-top:6px;">
+      <span>Context Displacement (Δ_context)</span><span id="m-context">N/A</span>
+    </div>
+
+    <div class="metric-row">
+      <span>Drift Metric (D_cognition)</span><span id="m-drift">N/A</span>
+    </div>
+
+    <div class="metric-row">
+      <span>SCMA-F Stability</span><span id="m-scma">N/A</span>
+    </div>
+
+    <div class="metric-row">
+      <span>Active Capability Node</span><span id="cap-active">N/A</span>
+    </div>
+
+    <div class="metric-row">
+      <span>Traversal Lawfulness</span><span id="cap-lawful">NOMINAL</span>
+    </div>
+
+    <div class="metric-row">
+      <span>Capability Traversal Drift (D_cap)</span><span id="m-cap">N/A</span>
+    </div>
+
+  </div>
+</div>
+
+
+
+
+  <!-- RIGHT PANEL: Fallback tensor + JSON-LD -->
+  <div class="panel">
+    <div class="surface-card">
+      <div class="surface-title">COGNITIVE SUBSTRATE INITIALIZATION</div>
+      <div class="text-row"><b>Operator:</b> Π_cognition ≡ Π_context ∘ T_drift ∘ Ω_SCMA-F</div>
+      <div class="text-row" style="margin-top:6px;"><b>W_context (Non-Collapsing Context Geometry)</b></div>
+      <div class="text-row">
+        Bounds latent-state evolution and prevents entropic drift in attention space.
+      </div>
+      <div class="text-row" style="margin-top:6px;"><b>T_drift (Cognitive Drift-Detection Twin)</b></div>
+      <div class="text-row">
+        Monitors divergence between S, R, and σ, enforcing S = R = σ in real time.
+      </div>
+      <div class="text-row" style="margin-top:6px;"><b>Ω_SCMA-F (Sense → Coherence → Meaning → Action → Fallback)</b></div>
+      <div class="text-row">
+        Provides deterministic cognitive state transitions, replacing probabilistic drift.
+      </div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">UNIFIED FALLBACK TENSOR (Cognitive)</div>
+      <div class="metric-row"><span>Context Geometry</span><span id="fb-context">NOMINAL</span></div>
+      <div class="metric-row"><span>Drift Twin</span><span id="fb-drift">NOMINAL</span></div>
+      <div class="metric-row"><span>SCMA-F Transitions</span><span id="fb-scma">NOMINAL</span></div>
+      <div class="metric-row"><span>Capability Graph</span><span id="fb-cap">NOMINAL</span></div>
+      <div class="metric-row" style="margin-top:6px;"><span><b>Invariant State (S = R = σ)</b></span><span id="fb-invariant">NOMINAL</span></div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">REAL-WORLD TOLERANCE REFERENCE (90070)</div>
+      <div class="text-row"><b>Max Semantic Displacement (Δ_max):</b> 0.6</div>
+      <div class="text-row"><b>Drift Threshold (E_threshold):</b> 0.6</div>
+      <div class="text-row"><b>Invariant Breach Condition:</b> S ≠ R or R ≠ o</div>
+      <div class="text-row"><b>Capability Boundary:</b> Tokens ∈ CapabilityGraph(90061)</div>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-title">JSON-LD STATE TENSOR (SM-DSLO-90070)</div>
+      <pre id="jsonld-out">Initializing DSLO Cognitive Substrate state...</pre>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ================================
+// Capability Graph Model (SM-DSLO-90061)
+// ================================
+
+const CAPABILITY_NODES = [
+  { id: "ROOT", label: "Root Meaning Physics" },
+  { id: "REGISTRY", label: "Capability-Graph Registry" },
+  { id: "RUNTIME", label: "Substrate Robotics" },
+  { id: "LUNAR", label: "Sovereign Lunar Node" },
+  { id: "COGNITIVE", label: "Cognitive Substrate" },
+  { id: "MILLENNIUM", label: "Millennium Geometry" }
+];
+
+const CAPABILITY_EDGES = [
+  ["ROOT", "REGISTRY"],
+  ["REGISTRY", "RUNTIME"],
+  ["REGISTRY", "LUNAR"],
+  ["REGISTRY", "COGNITIVE"],
+  ["COGNITIVE", "MILLENNIUM"],
+  ["RUNTIME", "LUNAR"],
+  ["LUNAR", "COGNITIVE"]
+];
+
+let capLayout = [];
+let capActiveNode = null;
+
+  // ================================
+  // SM‑DSLO‑90070 — Cognitive Runtime
+  // ================================
+
+  const cvContext = document.getElementById("cv-context");
+  const cvDrift   = document.getElementById("cv-drift");
+  const cvSCMA    = document.getElementById("cv-scma");
+  const cvCap     = document.getElementById("cv-cap");
+
+  const ctxContext = cvContext.getContext("2d");
+  const ctxDrift   = cvDrift.getContext("2d");
+  const ctxSCMA    = cvSCMA.getContext("2d");
+  const ctxCap     = cvCap.getContext("2d");
+
+  function resizeCanvas(cv) {
+    cv.width  = cv.clientWidth;
+    cv.height = cv.clientHeight;
+  }
+
+  [cvContext, cvDrift, cvSCMA, cvCap].forEach(resizeCanvas);
+
+  let D_context   = 0;
+  let D_drift     = 0;
+  let D_scma      = 0;
+  let D_cap       = 0;
+  let MODE        = "PI_COGNITION";
+  const SEMANTIC_CLAMP = 0.6;
+
+  function applyCognitiveAlignment(value, clamp = SEMANTIC_CLAMP) {
+  // If divergence exceeds clamp, reduce it gradually
+  if (value > clamp) {
+    return clamp + (value - clamp) * 0.1;  // soft clamp
+  }
+  return value; // leave lawful values untouched
+}
+
+
+  // 1. Non-Collapsing Context Geometry (W_context)
+  function updateContextGeometry() {
+    const w = cvContext.width, h = cvContext.height;
+    ctxContext.fillStyle = "#000";
+    ctxContext.fillRect(0, 0, w, h);
+
+    // Latent tensor points
+    for (let i = 0; i < 80; i++) {
+      const x = Math.random() * w;
+      const y = Math.random() * h;
+      const disp = Math.sin((x + y) * 0.01 + performance.now() * 0.002);
+      ctxContext.fillStyle = `rgba(0,229,255,${0.3 + disp * 0.3})`;
+      ctxContext.beginPath();
+      ctxContext.arc(x, y, 2.5, 0, Math.PI * 2);
+      ctxContext.fill();
+    }
+
+    // Bounding ring representing Δ_max
+    const centerX = w / 2, centerY = h / 2;
+    const rBase   = Math.min(w, h) * 0.30;
+    ctxContext.strokeStyle = "rgba(102,153,255,0.6)";
+    ctxContext.lineWidth = 2;
+    ctxContext.beginPath();
+    ctxContext.arc(centerX, centerY, rBase, 0, Math.PI * 2);
+    ctxContext.stroke();
+
+    // Context displacement metric
+    D_context = Math.abs(Math.sin(performance.now() * 0.001)) * 0.9;
+    document.getElementById("m-context").innerText = D_context.toFixed(2);
+
+    if (D_context > SEMANTIC_CLAMP) {
+      drawClampOverlay(ctxContext);
+    }
+  }
+
+  // 2. Cognitive Drift-Detection Twin (T_drift)
+  function updateDriftTwin() {
+    const w = cvDrift.width, h = cvDrift.height;
+    ctxDrift.fillStyle = "#000";
+    ctxDrift.fillRect(0, 0, w, h);
+
+    // S, R, o glyphs
+    const cx = w / 2, cy = h / 2;
+    const t  = performance.now() * 0.001;
+
+    const Sx = cx + Math.sin(t) * 25;
+    const Sy = cy + Math.cos(t) * 15;
+
+    const Rx = cx + Math.sin(t + 0.5) * 20;
+    const Ry = cy + Math.cos(t + 0.5) * 10;
+
+    const Ox = cx + Math.sin(t + 1.0) * 18;
+    const Oy = cy + Math.cos(t + 1.0) * 12;
+
+    ctxDrift.fillStyle = "#00e5ff";
+    ctxDrift.beginPath();
+    ctxDrift.arc(Sx, Sy, 3, 0, Math.PI * 2);
+    ctxDrift.fill();
+
+    ctxDrift.fillStyle = "#00ff88";
+    ctxDrift.beginPath();
+    ctxDrift.arc(Rx, Ry, 3, 0, Math.PI * 2);
+    ctxDrift.fill();
+
+    ctxDrift.fillStyle = "#ff3366";
+    ctxDrift.beginPath();
+    ctxDrift.arc(Ox, Oy, 3, 0, Math.PI * 2);
+    ctxDrift.fill();
+
+    // Connect S-R-o
+    ctxDrift.strokeStyle = "rgba(255,255,255,0.4)";
+    ctxDrift.lineWidth = 1;
+    ctxDrift.beginPath();
+    ctxDrift.moveTo(Sx, Sy);
+    ctxDrift.lineTo(Rx, Ry);
+    ctxDrift.lineTo(Ox, Oy);
+    ctxDrift.closePath();
+    ctxDrift.stroke();
+
+    // Drift metric D_cognition(t)
+    const dSR = Math.hypot(Sx - Rx, Sy - Ry);
+    const dRO = Math.hypot(Rx - Ox, Ry - Oy);
+    D_drift = (dSR + dRO) / Math.max(w, h);
+    document.getElementById("m-drift").innerText = D_drift.toFixed(2);
+
+    if (D_drift > SEMANTIC_CLAMP) {
+      drawClampOverlay(ctxDrift);
+    }
+  }
+
+  // 3. SCMA-F Cognitive Transitions
+  function updateSCMA() {
+    const w = cvSCMA.width, h = cvSCMA.height;
+    ctxSCMA.fillStyle = "#000";
+    ctxSCMA.fillRect(0, 0, w, h);
+
+    const states = ["Sense", "Coherence", "Meaning", "Action", "Fallback"];
+    const count  = states.length;
+    const spacing = w / (count + 1);
+    const t = performance.now() * 0.001;
+
+    ctxSCMA.strokeStyle = "#00e5ff";
+    ctxSCMA.lineWidth = 1.5;
+    ctxSCMA.beginPath();
+
+    for (let i = 0; i < count; i++) {
+      const x = spacing * (i + 1);
+      const y = h / 2 + Math.sin(t + i * 0.6) * 20;
+      if (i === 0) ctxSCMA.moveTo(x, y);
+      else ctxSCMA.lineTo(x, y);
+
+      ctxSCMA.fillStyle = "#00ff88";
+      ctxSCMA.beginPath();
+      ctxSCMA.arc(x, y, 3, 0, Math.PI * 2);
+      ctxSCMA.fill();
+
+      ctxSCMA.fillStyle = "#8a99ad";
+      ctxSCMA.font = "9px monospace";
+      ctxSCMA.fillText(states[i], x - 16, y - 10);
+    }
+    ctxSCMA.stroke();
+
+    // Stability metric: variance of y positions
+    let ys = [];
+    for (let i = 0; i < count; i++) {
+      const x = spacing * (i + 1);
+      const y = h / 2 + Math.sin(t + i * 0.6) * 20;
+      ys.push(y);
+    }
+    const meanY = ys.reduce((a, b) => a + b, 0) / ys.length;
+    const varY  = ys.reduce((a, b) => a + (b - meanY) ** 2, 0) / ys.length;
+    D_scma = Math.min(1, varY / (h * h * 0.02));
+    document.getElementById("m-scma").innerText = D_scma.toFixed(2);
+
+    if (D_scma > SEMANTIC_CLAMP) {
+      drawClampOverlay(ctxSCMA);
+    }
+  }
+
+  // 4. Capability-Graph Traversal
+  function updateCapabilityGraph() {
+    const w = cvCap.width, h = cvCap.height;
+    ctxCap.fillStyle = "#000";
+    ctxCap.fillRect(0, 0, w, h);
+
+    const nodes = 30;
+    const maxEdges = 3;
+    let points = [];
+
+    for (let i = 0; i < nodes; i++) {
+      points.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        lawful: Math.random() > 0.15
+      });
+    }
+
+    // Nodes
+    points.forEach(pt => {
+      ctxCap.fillStyle = pt.lawful ? "#00ff88" : "#ff3366";
+      ctxCap.beginPath();
+      ctxCap.arc(pt.x, pt.y, 2.5, 0, Math.PI * 2);
+      ctxCap.fill();
+    });
+
+    // Edges
+    ctxCap.lineWidth = 1;
+    points.forEach(pt => {
+      for (let j = 0; j < maxEdges; j++) {
+        const other = points[Math.floor(Math.random() * nodes)];
+        ctxCap.strokeStyle =
+          pt.lawful && other.lawful ? "rgba(0,255,136,0.4)" : "rgba(255,51,102,0.4)";
+        ctxCap.beginPath();
+        ctxCap.moveTo(pt.x, pt.y);
+        ctxCap.lineTo(other.x, other.y);
+        ctxCap.stroke();
+      }
+    });
+
+    // Lawfulness metric: fraction of lawful nodes
+    const lawfulCount = points.filter(p => p.lawful).length;
+    D_cap = 1 - lawfulCount / nodes;
+    document.getElementById("m-cap").innerText = D_cap.toFixed(2);
+
+    if (D_cap > SEMANTIC_CLAMP) {
+      drawClampOverlay(ctxCap);
+    }
+  }
+
+  // Clamp overlay (Δ_max / drift breach)
+  function drawClampOverlay(ctx) {
+    const w = ctx.canvas.width;
+    const h = ctx.canvas.height;
+    const r = Math.min(w, h) * 0.35;
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,51,102,0.45)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Unified fallback tensor + invariant state
+  function updateFallbackTensor() {
+    const fbContext = document.getElementById("fb-context");
+    const fbDrift   = document.getElementById("fb-drift");
+    const fbSCMA    = document.getElementById("fb-scma");
+    const fbCap     = document.getElementById("fb-cap");
+    const fbInv     = document.getElementById("fb-invariant");
+
+    fbContext.innerText = D_context > SEMANTIC_CLAMP ? "BREACH" : "NOMINAL";
+    fbDrift.innerText   = D_drift   > SEMANTIC_CLAMP ? "BREACH" : "NOMINAL";
+    fbSCMA.innerText    = D_scma    > SEMANTIC_CLAMP ? "BREACH" : "NOMINAL";
+    fbCap.innerText     = D_cap     > SEMANTIC_CLAMP ? "BREACH" : "NOMINAL";
+
+    const invariantBreached =
+      D_context > SEMANTIC_CLAMP ||
+      D_drift   > SEMANTIC_CLAMP ||
+      D_scma    > SEMANTIC_CLAMP ||
+      D_cap     > SEMANTIC_CLAMP;
+
+    fbInv.innerText = invariantBreached ? "BREACH" : "NOMINAL";
+
+    const status = document.getElementById("cog-status");
+    status.className = invariantBreached ? "status-badge breach" : "status-badge";
+    status.innerText = invariantBreached
+      ? "S = R = σ (BREACH)"
+      : "S = R = σ (NOMINAL)";
+  }
+
+  // JSON-LD state tensor
+  function updateJSONLD() {
+    const jsonld = {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "dslo:nodeIdentifier": "SM-DSLO-90070",
+      "dslo:masterInvariant": "S = R = σ",
+      "dslo:cognitiveMetrics": {
+        "contextGeometry": D_context,
+        "driftTwin": D_drift,
+        "scmaF": D_scma,
+        "capabilityTraversal": D_cap
+      },
+      "dslo:fallbackTensor": {
+        "context": D_context > SEMANTIC_CLAMP ? "BREACH" : "NOMINAL",
+        "drift":   D_drift   > SEMANTIC_CLAMP ? "BREACH" : "NOMINAL",
+        "scmaF":   D_scma    > SEMANTIC_CLAMP ? "BREACH" : "NOMINAL",
+        "capability": D_cap  > SEMANTIC_CLAMP ? "BREACH" : "NOMINAL"
+      },
+      "dslo:operatorMode": MODE,
+      "dslo:alignmentOperator": "Π_cognition",
+      "dslo:semanticClamp": SEMANTIC_CLAMP
+    };
+
+    document.getElementById("jsonld-out").innerText =
+      JSON.stringify(jsonld, null, 2);
+  }
+
+
+  // Main loop
+  function renderCognitiveSubstrate() {
+    updateContextGeometry();
+    updateDriftTwin();
+    updateSCMA();
+updateCapabilityGraph();
+
+// ================================
+// Capability Graph Model (SM-DSLO-90061)
+// ================================
+
+const CAPABILITY_NODES = [
+  { id: "ROOT", label: "Root Meaning Physics", type: "anchor" },
+  { id: "REGISTRY", label: "Capability-Graph Registry", type: "anchor" },
+  { id: "RUNTIME", label: "Substrate Robotics", type: "runtime" },
+  { id: "LUNAR", label: "Sovereign Lunar Node", type: "container" },
+  { id: "COGNITIVE", label: "Cognitive Substrate", type: "cognitive" },
+  { id: "MILLENNIUM", label: "Millennium Geometry", type: "math" }
+];
+
+const CAPABILITY_EDGES = [
+  ["ROOT", "REGISTRY"],
+  ["REGISTRY", "RUNTIME"],
+  ["REGISTRY", "LUNAR"],
+  ["REGISTRY", "COGNITIVE"],
+  ["COGNITIVE", "MILLENNIUM"],
+  ["RUNTIME", "LUNAR"],
+  ["LUNAR", "COGNITIVE"]
+];
+
+let capLayout = [];
+let capActiveNode = null;
+
+    // ============================
+  // Π_cognition — Sovereign Alignment Mode
+  // ============================
+  if (MODE === "PI_COGNITION") {
+
+    // Clamp divergence (soft clamp)
+    D_context = applyCognitiveAlignment(D_context);
+    D_drift   = applyCognitiveAlignment(D_drift);
+    D_scma    = applyCognitiveAlignment(D_scma);
+    D_cap     = applyCognitiveAlignment(D_cap);
+
+    // Enforce invariant S = R = o
+    if (D_drift < 0.2) {
+      // When drift is low, stabilize all metrics
+      D_context *= 0.9;
+      D_scma    *= 0.9;
+      D_cap     *= 0.9;
+    }
+  }
+ 
+  // ============================
+  // Classical Transformer Mode
+  // ============================
+  if (MODE === "CLASSICAL") {
+    // Classical transformer: no clamp, slight noise
+    D_context += Math.random() * 0.02;
+    D_drift   += Math.random() * 0.02;
+    D_scma    += Math.random() * 0.02;
+    D_cap     += Math.random() * 0.02;
+  }
+
+    updateFallbackTensor();
+
+// ADD THIS BLOCK HERE
+const jsonldPanel = document.getElementById("jsonld-out");
+const invariantBreached =
+  D_context > SEMANTIC_CLAMP ||
+  D_drift   > SEMANTIC_CLAMP ||
+  D_scma    > SEMANTIC_CLAMP ||
+  D_cap     > SEMANTIC_CLAMP;
+
+if (invariantBreached) {
+  jsonldPanel.style.color = "#ff3366";   // breach red
+} else {
+  jsonldPanel.style.color = "#00ff88";   // nominal green
+}
+    updateJSONLD();
+
+    requestAnimationFrame(renderCognitiveSubstrate);
+  }
+
+// Interactive click handler for capability graph
+cvCap.addEventListener("click", (e) => {
+  const rect = cvCap.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  let nearest = null;
+  let minDist = Infinity;
+
+  capLayout.forEach(node => {
+    const d = Math.hypot(node.x - x, node.y - y);
+    if (d < minDist && d < 12) {
+      minDist = d;
+      nearest = node;
+    }
+  });
+
+  if (nearest) {
+    capActiveNode = nearest;
+  }
+});
+
+
+  window.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("mode-pi").onclick = () => {
+      MODE = "PI_COGNITION";
+    };
+    document.getElementById("mode-classical").onclick = () => {
+      MODE = "CLASSICAL";
+    };
+    renderCognitiveSubstrate();
+  });
+</script>
+</body>
+</html>
 
